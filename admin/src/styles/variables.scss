@@ -1,0 +1,51 @@
+// Spacing
+$spacing-mini: 4px;
+$spacing-small: 8px;
+$spacing-base: 12px;
+$spacing-medium: 16px;
+$spacing-large: 24px;
+$spacing-xlarge: 32px;
+$spacing-larger: 40px;
+
+// Font sizes
+$font-size-mini: 12px;
+$font-size-base: 14px;
+$font-size-large: 16px;
+$font-size-larger: 20px;
+
+// Colors
+$primary-color: var(--el-color-primary);
+$color-primary: var(--el-color-primary);
+$color-success: var(--el-color-success);
+$color-warning: var(--el-color-warning);
+$color-danger: var(--el-color-danger);
+$color-info: var(--el-color-info);
+
+// Text colors
+$text-primary: var(--el-text-color-primary);
+$text-regular: var(--el-text-color-regular);
+$text-secondary: var(--el-text-color-secondary);
+$text-placeholder: var(--el-text-color-placeholder);
+
+// Background colors
+$bg-color: var(--el-bg-color);
+$bg-color-page: var(--el-bg-color);
+$bg-color-overlay: var(--el-bg-color-overlay);
+
+// Border colors
+$border-color: var(--el-border-color);
+$border-color-light: var(--el-border-color-light);
+$border-color-base: var(--el-border-color);
+
+// Border radius
+$border-radius-small: 2px;
+$border-radius-base: 4px;
+$border-radius-large: 8px;
+
+// Box shadows
+$box-shadow-base: var(--el-box-shadow);
+$box-shadow-light: var(--el-box-shadow-light);
+$box-shadow-dark: var(--el-box-shadow-dark);
+
+// Danger color alias
+$danger-color: $color-danger; 

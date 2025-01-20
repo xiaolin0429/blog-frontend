@@ -1,0 +1,138 @@
+.user-manage-container {
+  .header-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    .left {
+      display: flex;
+      gap: $spacing-small;
+    }
+
+    .right {
+      display: flex;
+      gap: $spacing-small;
+      align-items: center;
+
+      .search-input {
+        width: 240px;
+      }
+
+      .role-select,
+      .status-select {
+        width: 120px;
+      }
+    }
+  }
+
+  // 用户信息样式
+  .user-info {
+    display: flex;
+    align-items: center;
+    gap: $spacing-small;
+
+    .info {
+      .nickname {
+        font-size: $font-size-base;
+        color: $text-primary;
+        margin-bottom: 4px;
+      }
+
+      .username {
+        font-size: $font-size-mini;
+        color: $text-secondary;
+      }
+    }
+  }
+
+  // 表格样式
+  :deep(.el-table) {
+    background-color: $bg-color-overlay;
+    color: $text-regular;
+
+    th {
+      background-color: $bg-color;
+      color: $text-primary;
+      font-weight: bold;
+    }
+
+    td {
+      border-bottom-color: $border-color-base;
+    }
+
+    tr:hover > td {
+      background-color: $hover-color;
+    }
+  }
+
+  // 分页样式
+  .pagination-container {
+    margin-top: $spacing-base;
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  // 对话框样式
+  :deep(.el-dialog) {
+    background-color: $bg-color-overlay;
+
+    .el-dialog__header {
+      border-bottom: $border-width-base $border-style-base $border-color-base;
+      margin-right: 0;
+      padding: $spacing-base;
+
+      .el-dialog__title {
+        color: $text-primary;
+      }
+    }
+
+    .el-dialog__body {
+      padding: $spacing-base;
+      color: $text-regular;
+    }
+
+    .el-dialog__footer {
+      border-top: $border-width-base $border-style-base $border-color-base;
+      padding: $spacing-base;
+    }
+
+    .el-form-item__label {
+      color: $text-regular;
+    }
+
+    .el-input__wrapper,
+    .el-select__wrapper {
+      background-color: $bg-color;
+    }
+  }
+
+  // 按钮组样式
+  :deep(.el-button-group) {
+    .el-button {
+      &:not(:last-child) {
+        margin-right: $spacing-mini;
+      }
+    }
+  }
+
+  // 标签样式
+  :deep(.el-tag) {
+    &--danger {
+      background-color: rgba($danger-color, 0.1);
+      border-color: rgba($danger-color, 0.2);
+      color: $danger-color;
+    }
+
+    &--success {
+      background-color: rgba($success-color, 0.1);
+      border-color: rgba($success-color, 0.2);
+      color: $success-color;
+    }
+
+    &--info {
+      background-color: rgba($info-color, 0.1);
+      border-color: rgba($info-color, 0.2);
+      color: $info-color;
+    }
+  }
+} 

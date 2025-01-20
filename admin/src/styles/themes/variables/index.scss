@@ -1,0 +1,28 @@
+@import './colors';
+@import './sizes';
+
+// 导出所有变量，方便其他文件引用
+:export {
+  primaryColor: $primary-color;
+  successColor: $success-color;
+  warningColor: $warning-color;
+  dangerColor: $danger-color;
+  infoColor: $info-color;
+  
+  textPrimary: $text-primary;
+  textRegular: $text-regular;
+  textSecondary: $text-secondary;
+  textPlaceholder: $text-placeholder;
+  
+  borderColorBase: $border-color-base;
+  borderColorLight: $border-color-light;
+  borderColorLighter: $border-color-lighter;
+  
+  bgColor: $bg-color;
+  bgColorPage: $bg-color-page;
+  bgColorOverlay: $bg-color-overlay;
+  
+  spacingBase: $spacing-base;
+  fontSizeBase: $font-size-base;
+  borderRadiusBase: $border-radius-base;
+} 

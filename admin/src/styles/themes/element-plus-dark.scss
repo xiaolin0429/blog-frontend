@@ -1,0 +1,81 @@
+@import './variables/index.scss';
+
+// Element Plus 暗色主题变量覆盖
+:root {
+  // 主色调
+  --el-color-primary: #{$primary-color};
+  --el-color-success: #{$success-color};
+  --el-color-warning: #{$warning-color};
+  --el-color-danger: #{$danger-color};
+  --el-color-info: #{$info-color};
+
+  // 文字颜色
+  --el-text-color-primary: #{$text-primary};
+  --el-text-color-regular: #{$text-regular};
+  --el-text-color-secondary: #{$text-secondary};
+  --el-text-color-placeholder: #{$text-placeholder};
+
+  // 边框颜色
+  --el-border-color: #{$border-color-base};
+  --el-border-color-light: #{$border-color-light};
+  --el-border-color-lighter: #{$border-color-lighter};
+
+  // 填充色
+  --el-fill-color: #{$bg-color};
+  --el-fill-color-light: #{$hover-color};
+  --el-fill-color-blank: #{$bg-color-overlay};
+
+  // 背景色
+  --el-bg-color: #{$bg-color};
+  --el-bg-color-page: #{$bg-color-page};
+  --el-bg-color-overlay: #{$bg-color-overlay};
+
+  // 禁用状态
+  --el-disabled-bg-color: #{$hover-color};
+  --el-disabled-text-color: #{$text-placeholder};
+  --el-disabled-border-color: #{$border-color-light};
+}
+
+// 组件级别的样式覆盖
+.el-button {
+  &--primary {
+    --el-button-hover-bg-color: #{darken($primary-color, 10%)};
+    --el-button-active-bg-color: #{darken($primary-color, 20%)};
+  }
+}
+
+.el-input__wrapper {
+  background-color: #{$bg-color};
+  box-shadow: 0 0 0 1px #{$border-color-base};
+
+  &:hover {
+    box-shadow: 0 0 0 1px #{$border-color-light};
+  }
+
+  &.is-focus {
+    box-shadow: 0 0 0 1px #{$primary-color};
+  }
+}
+
+.el-select__popper {
+  background-color: #{$bg-color-overlay};
+  border-color: #{$border-color-base};
+}
+
+.el-table {
+  --el-table-header-bg-color: #{$bg-color};
+  --el-table-row-hover-bg-color: #{$hover-color};
+  --el-table-border-color: #{$border-color-base};
+  
+  th {
+    background-color: #{$bg-color};
+  }
+}
+
+.el-dialog {
+  background-color: #{$bg-color-overlay};
+  
+  &__header {
+    border-bottom: 1px solid #{$border-color-base};
+  }
+} 

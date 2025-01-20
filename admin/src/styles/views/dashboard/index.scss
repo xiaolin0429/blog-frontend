@@ -1,0 +1,149 @@
+@use '@/styles/variables' as *;
+
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-large;
+  padding: $spacing-large;
+
+  // 数据统计卡片
+  .data-statistics {
+    margin-bottom: $spacing-large;
+  }
+
+  // 卡片样式
+  .dark-card {
+    background-color: $bg-color-overlay;
+    border: none;
+    color: $text-regular;
+
+    :deep(.el-card__body) {
+      padding: $spacing-base;
+    }
+  }
+
+  // 统计项样式
+  .statistic-item {
+    display: flex;
+    align-items: center;
+    gap: $spacing-base;
+
+    .icon {
+      font-size: $font-size-larger;
+      color: $primary-color;
+    }
+
+    .content {
+      flex: 1;
+
+      .value {
+        font-size: $font-size-larger;
+        font-weight: bold;
+        color: $text-primary;
+        line-height: 1;
+        margin-bottom: $spacing-small;
+      }
+
+      .label {
+        font-size: $font-size-base;
+        color: $text-regular;
+      }
+    }
+  }
+
+  // 标题样式
+  .quick-access,
+  .notification-area {
+    h2 {
+      margin: 0 0 $spacing-base;
+      font-size: $font-size-large;
+      color: $text-primary;
+    }
+  }
+
+  // 快捷访问项
+  .quick-access-item {
+    height: 120px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-bottom: $spacing-base;
+
+    &:hover {
+      transform: translateY(-4px);
+    }
+
+    .icon {
+      font-size: 32px;
+      color: $primary-color;
+      margin-bottom: $spacing-small;
+    }
+
+    .title {
+      font-size: $font-size-base;
+      color: $text-regular;
+    }
+  }
+
+  // 通知项
+  .notice-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: $spacing-small 0;
+
+    .title {
+      font-size: $font-size-base;
+      color: $text-regular;
+      flex: 1;
+      margin-right: $spacing-base;
+    }
+
+    .time {
+      font-size: $font-size-mini;
+      color: $text-secondary;
+    }
+  }
+
+  // 分割线
+  :deep(.el-divider) {
+    margin: 0;
+    border-color: $border-color-base;
+  }
+
+  .stats-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: $spacing-medium;
+    
+    .stat-card {
+      .title {
+        color: $text-secondary;
+        font-size: $font-size-base;
+        margin-bottom: $spacing-mini;
+      }
+      
+      .value {
+        font-size: $font-size-larger;
+        font-weight: bold;
+        color: $text-primary;
+      }
+      
+      .trend {
+        margin-top: $spacing-small;
+        font-size: $font-size-mini;
+        
+        &.up {
+          color: $color-success;
+        }
+        
+        &.down {
+          color: $color-danger;
+        }
+      }
+    }
+  }
+} 

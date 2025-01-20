@@ -1,0 +1,92 @@
+.admin-layout {
+  height: 100vh;
+
+  .aside {
+    background-color: $bg-color;
+    transition: width 0.3s;
+    overflow: hidden;
+    
+    .logo {
+      height: 60px;
+      display: flex;
+      align-items: center;
+      padding: 0 $spacing-base;
+      color: $text-primary;
+      
+      img {
+        width: 24px;
+        height: 24px;
+        margin-right: $spacing-small;
+      }
+    }
+    
+    :deep(.el-menu) {
+      border-right: none;
+      background-color: $bg-color;
+
+      .el-menu-item {
+        &.is-active {
+          background-color: $hover-color;
+        }
+
+        &:hover {
+          background-color: $hover-color;
+        }
+      }
+    }
+  }
+
+  .header {
+    background-color: $bg-color-overlay;
+    border-bottom: $border-width-base $border-style-base $border-color-base;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 $spacing-base;
+    
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: $spacing-base;
+
+      .el-breadcrumb {
+        :deep(.el-breadcrumb__inner) {
+          color: $text-regular;
+          
+          &.is-link:hover {
+            color: $primary-color;
+          }
+        }
+      }
+    }
+    
+    .header-right {
+      .avatar-container {
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        
+        .username {
+          margin-left: $spacing-small;
+          color: $text-regular;
+        }
+      }
+    }
+  }
+
+  .main {
+    background-color: $bg-color-page;
+    padding: $spacing-base;
+  }
+}
+
+// 过渡动画
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+} 

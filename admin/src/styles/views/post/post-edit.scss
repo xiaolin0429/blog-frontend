@@ -1,0 +1,201 @@
+@use '@/styles/variables' as *;
+
+.post-edit {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+
+  // 工具栏样式
+  .toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: $spacing-medium;
+    background-color: $bg-color;
+    border-bottom: 1px solid $border-color-light;
+
+    .left {
+      display: flex;
+      align-items: center;
+      gap: $spacing-medium;
+
+      .back-button {
+        font-size: $font-size-base;
+      }
+
+      .last-saved {
+        font-size: $font-size-base;
+        color: $text-secondary;
+      }
+    }
+
+    .right {
+      display: flex;
+      gap: $spacing-small;
+    }
+  }
+
+  // 编辑区域样式
+  .editor-container {
+    flex: 1;
+    display: flex;
+    gap: $spacing-medium;
+    padding: $spacing-medium;
+    min-height: 0;
+    overflow: hidden;
+
+    // 主编辑区样式
+    .main-editor {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+
+      .title-input {
+        margin-bottom: $spacing-medium;
+
+        :deep(.el-input__wrapper) {
+          background-color: $bg-color-overlay;
+          box-shadow: 0 0 0 1px $border-color;
+        }
+
+        :deep(.el-input__inner) {
+          font-size: $font-size-larger;
+          height: 48px;
+        }
+      }
+
+      .content-editor {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+
+        :deep(.bytemd) {
+          flex: 1;
+          height: auto;
+          background-color: $bg-color-overlay;
+          border: 1px solid $border-color;
+
+          .bytemd-toolbar {
+            background-color: $bg-color-overlay;
+            border-bottom: 1px solid $border-color;
+
+            .bytemd-toolbar-icon {
+              color: $text-regular;
+
+              &:hover {
+                color: $text-primary;
+                background-color: var(--el-fill-color-light);
+              }
+            }
+          }
+
+          .bytemd-status {
+            background-color: $bg-color-overlay;
+            border-top: 1px solid $border-color;
+            color: $text-secondary;
+          }
+        }
+      }
+    }
+
+    // 侧边栏样式
+    .sidebar {
+      width: 300px;
+      overflow-y: auto;
+
+      .el-card {
+        background-color: $bg-color-overlay;
+        border: 1px solid $border-color;
+        margin-bottom: $spacing-medium;
+
+        :deep(.el-card__header) {
+          border-bottom: 1px solid $border-color;
+          padding: $spacing-small $spacing-medium;
+        }
+      }
+
+      :deep(.el-form-item) {
+        margin-bottom: $spacing-medium;
+
+        &:last-child {
+          margin-bottom: 0;
+        }
+      }
+
+      :deep(.el-input__wrapper),
+      :deep(.el-textarea__inner) {
+        background-color: $bg-color;
+      }
+
+      :deep(.el-select__tags) {
+        background-color: transparent;
+      }
+
+      :deep(.el-tag) {
+        background-color: var(--el-fill-color);
+        border-color: $border-color;
+        color: $text-regular;
+      }
+
+      :deep(.el-switch__label) {
+        color: $text-regular;
+      }
+
+      // 封面上传样式
+      .cover-uploader {
+        border: 1px dashed $border-color;
+        border-radius: $border-radius-base;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+        transition: var(--el-transition-duration);
+
+        &:hover {
+          border-color: $primary-color;
+        }
+
+        .uploader-icon {
+          width: 100%;
+          height: 120px;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          font-size: 28px;
+          color: $text-secondary;
+        }
+
+        .cover-image {
+          width: 100%;
+          height: 120px;
+          object-fit: cover;
+          display: block;
+        }
+
+        .cover-actions {
+          position: absolute;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          height: 32px;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          background-color: rgba(0, 0, 0, 0.6);
+          opacity: 0;
+          transition: var(--el-transition-duration);
+
+          .el-button {
+            padding: 2px 8px;
+            font-size: $font-size-mini;
+          }
+        }
+
+        &:hover .cover-actions {
+          opacity: 1;
+        }
+      }
+    }
+  }
+} 

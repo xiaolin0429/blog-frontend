@@ -1,0 +1,44 @@
+.post-batch-dialog {
+  .full-width {
+    width: 100%;
+  }
+
+  :deep(.el-dialog) {
+    background-color: #1e1e1e;
+    border: 1px solid #303030;
+  }
+
+  :deep(.el-dialog__header) {
+    border-bottom: 1px solid #303030;
+  }
+
+  :deep(.el-dialog__title) {
+    color: #E6E6E6;
+  }
+
+  :deep(.el-radio) {
+    color: #909399;
+  }
+
+  :deep(.el-radio__input.is-checked + .el-radio__label) {
+    color: #409EFF;
+  }
+
+  :deep(.el-select__popper) {
+    background-color: #1e1e1e !important;
+    border: 1px solid #303030 !important;
+  }
+
+  :deep(.el-select-dropdown__item) {
+    color: #909399;
+
+    &.hover {
+      background-color: #2c2c2c !important;
+    }
+
+    &.selected {
+      background-color: #2c2c2c !important;
+      color: #409EFF;
+    }
+  }
+} 

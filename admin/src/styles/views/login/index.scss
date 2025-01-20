@@ -1,0 +1,85 @@
+@use '../../variables.scss' as *;
+
+.login-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--el-bg-color);
+
+  .login-card {
+    width: 400px;
+    padding: $spacing-larger;
+    background-color: var(--el-bg-color-overlay);
+    border-radius: $border-radius-large;
+    box-shadow: var(--el-box-shadow-light);
+
+    .login-title {
+      font-size: $font-size-larger;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: $spacing-larger;
+      color: var(--el-text-color-primary);
+    }
+
+    :deep(.el-input) {
+      .el-input__wrapper {
+        background-color: var(--el-bg-color);
+        box-shadow: 0 0 0 1px var(--el-border-color);
+
+        &:hover {
+          box-shadow: 0 0 0 1px var(--el-border-color-light);
+        }
+
+        &.is-focus {
+          box-shadow: 0 0 0 1px var(--el-color-primary);
+        }
+      }
+
+      .el-input__inner {
+        color: var(--el-text-color-regular);
+
+        &::placeholder {
+          color: var(--el-text-color-placeholder);
+        }
+      }
+
+      .el-input__prefix {
+        color: var(--el-text-color-secondary);
+      }
+    }
+
+    :deep(.el-checkbox) {
+      .el-checkbox__label {
+        color: var(--el-text-color-regular);
+      }
+
+      &.is-checked {
+        .el-checkbox__label {
+          color: var(--el-color-primary);
+        }
+      }
+    }
+
+    :deep(.el-button) {
+      width: 100%;
+      margin-top: $spacing-base;
+      
+      &.is-loading {
+        background-color: var(--el-color-primary-light-3);
+      }
+    }
+
+    :deep(.el-form-item) {
+      margin-bottom: $spacing-base;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+
+      .el-form-item__error {
+        color: var(--el-color-danger);
+      }
+    }
+  }
+} 
