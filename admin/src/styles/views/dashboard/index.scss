@@ -1,148 +1,179 @@
-@use '@/styles/variables' as *;
+@use '../../_variables' as v;
+@use '../../_mixins' as m;
 
 .dashboard {
+  padding: 8px;
+  height: 50vh;  // 设置总高度为屏幕的一半
   display: flex;
   flex-direction: column;
-  gap: $spacing-large;
-  padding: $spacing-large;
 
-  // 数据统计卡片
+  // 统计卡片
   .data-statistics {
-    margin-bottom: $spacing-large;
-  }
-
-  // 卡片样式
-  .dark-card {
-    background-color: $bg-color-overlay;
-    border: none;
-    color: $text-regular;
-
-    :deep(.el-card__body) {
-      padding: $spacing-base;
-    }
-  }
-
-  // 统计项样式
-  .statistic-item {
-    display: flex;
-    align-items: center;
-    gap: $spacing-base;
-
-    .icon {
-      font-size: $font-size-larger;
-      color: $primary-color;
-    }
-
-    .content {
-      flex: 1;
-
-      .value {
-        font-size: $font-size-larger;
-        font-weight: bold;
-        color: $text-primary;
-        line-height: 1;
-        margin-bottom: $spacing-small;
-      }
-
-      .label {
-        font-size: $font-size-base;
-        color: $text-regular;
-      }
-    }
-  }
-
-  // 标题样式
-  .quick-access,
-  .notification-area {
-    h2 {
-      margin: 0 0 $spacing-base;
-      font-size: $font-size-large;
-      color: $text-primary;
-    }
-  }
-
-  // 快捷访问项
-  .quick-access-item {
-    height: 120px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.3s;
-    margin-bottom: $spacing-base;
-
-    &:hover {
-      transform: translateY(-4px);
-    }
-
-    .icon {
-      font-size: 32px;
-      color: $primary-color;
-      margin-bottom: $spacing-small;
-    }
-
-    .title {
-      font-size: $font-size-base;
-      color: $text-regular;
-    }
-  }
-
-  // 通知项
-  .notice-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: $spacing-small 0;
-
-    .title {
-      font-size: $font-size-base;
-      color: $text-regular;
-      flex: 1;
-      margin-right: $spacing-base;
-    }
-
-    .time {
-      font-size: $font-size-mini;
-      color: $text-secondary;
-    }
-  }
-
-  // 分割线
-  :deep(.el-divider) {
-    margin: 0;
-    border-color: $border-color-base;
-  }
-
-  .stats-cards {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: $spacing-medium;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-bottom: 8px;
+    flex-shrink: 0;  // 防止压缩
+
+    .dark-card {
+      margin: 0;
+      padding: 12px;
+      background-color: var(--el-bg-color);
+      border: 1px solid var(--el-border-color);
+      border-radius: v.$border-radius-base;
+
+      .statistic-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        .icon {
+          font-size: v.$font-size-extra-large;
+          color: var(--el-color-primary);
+        }
+
+        .content {
+          flex: 1;
+
+          .value {
+            font-size: v.$font-size-extra-large;
+            font-weight: bold;
+            color: var(--el-text-color-primary);
+            line-height: 1.2;
+          }
+
+          .label {
+            font-size: v.$font-size-base;
+            color: var(--el-text-color-regular);
+            margin-top: v.$spacing-small;
+          }
+        }
+      }
+    }
+  }
+
+  // 下方左右两栏布局
+  .bottom-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    flex: 1;
+    min-height: 0;
     
-    .stat-card {
-      .title {
-        color: $text-secondary;
-        font-size: $font-size-base;
-        margin-bottom: $spacing-mini;
+    // 快捷访问区域
+    .quick-access {
+      display: flex;
+      flex-direction: column;
+      border-radius: v.$border-radius-base;
+      background-color: var(--el-bg-color);
+      border: 1px solid var(--el-border-color);
+
+      h2 {
+        font-size: v.$font-size-large;
+        color: var(--el-text-color-primary);
+        margin-bottom: 8px;
+        padding: 12px 12px 0 12px;
+        flex-shrink: 0;
       }
-      
-      .value {
-        font-size: $font-size-larger;
-        font-weight: bold;
-        color: $text-primary;
+
+      .quick-access-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        grid-template-rows: repeat(3, 1fr);
+        gap: 8px;
+        padding: 12px;
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
       }
-      
-      .trend {
-        margin-top: $spacing-small;
-        font-size: $font-size-mini;
-        
-        &.up {
-          color: $color-success;
+
+      .quick-access-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        background-color: var(--el-bg-color);
+        border: 1px solid var(--el-border-color);
+        border-radius: v.$border-radius-base;
+        padding: 8px;
+        height: 100%;
+
+        &:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 2px 4px var(--el-box-shadow-lighter);
+          border-color: var(--el-color-primary);
+          color: var(--el-color-primary);
+
+          .icon {
+            color: var(--el-color-primary);
+          }
         }
-        
-        &.down {
-          color: $color-danger;
+
+        .icon {
+          font-size: 20px;
+          color: var(--el-text-color-regular);
+          margin-bottom: v.$spacing-small;
         }
+
+        .title {
+          font-size: v.$font-size-small;
+          color: var(--el-text-color-regular);
+          line-height: 1.2;
+        }
+      }
+    }
+
+    // 通知区域
+    .notification-area {
+      display: flex;
+      flex-direction: column;
+      border-radius: v.$border-radius-base;
+      background-color: var(--el-bg-color);
+      border: 1px solid var(--el-border-color);
+
+      h2 {
+        font-size: v.$font-size-large;
+        color: var(--el-text-color-primary);
+        margin-bottom: 8px;
+        padding: 12px 12px 0 12px;
+        flex-shrink: 0;
+      }
+
+      .dark-card {
+        flex: 1;
+        min-height: 0;
+        padding: 12px;
+        overflow-y: auto;
+        border: none;
+        background: none;
+      }
+
+      .notice-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 6px 12px;
+
+        .title {
+          font-size: v.$font-size-base;
+          color: var(--el-text-color-regular);
+          flex: 1;
+          margin-right: v.$spacing-base;
+          @include m.text-ellipsis(1);
+        }
+
+        .time {
+          font-size: v.$font-size-small;
+          color: var(--el-text-color-secondary);
+          white-space: nowrap;
+        }
+      }
+
+      :deep(.el-divider) {
+        margin: 0;
+        border-color: var(--el-border-color-lighter);
       }
     }
   }

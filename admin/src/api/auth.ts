@@ -1,32 +1,29 @@
 import request from '@/utils/request'
-import type { ApiResponse } from '@/types/api'
+import type { UserInfo } from '@/store/modules/user'
 
-interface LoginParams {
-  username: string
-  password: string
-  remember?: boolean
-}
-
-interface LoginResult {
-  refresh: string
+interface LoginResponse {
   access: string
-  user: {
-    id: number
-    username: string
-    email: string
-    nickname: string | null
-    avatar: string | null
-    date_joined: string
-    last_login: string | null
-  }
+  refresh: string
+  user: UserInfo
 }
 
-/**
- * 用户登录
- * @POST /auth/login/
- */
-export function login(data: LoginParams) {
-  return request.post<ApiResponse<LoginResult>>('/auth/login/', data)
+interface RefreshTokenResponse {
+  access: string
+}
+
+// 登录
+export const login = (data: { username: string; password: string }) => {
+  return request.post<LoginResponse>('/auth/login/', data)
+}
+
+// 刷新token
+export const refreshToken = () => {
+  return request.post<RefreshTokenResponse>('/auth/refresh/')
+}
+
+// 获取用户信息
+export const getUserInfo = () => {
+  return request.get<UserInfo>('/user/me/')
 }
 
 /**
@@ -35,12 +32,4 @@ export function login(data: LoginParams) {
  */
 export function logout() {
   return request.post('/auth/logout/')
-}
-
-/**
- * 刷新Token
- * @POST /auth/refresh/
- */
-export function refreshToken(refresh: string) {
-  return request.post<ApiResponse<{ access: string }>>('/auth/refresh/', { refresh })
 } 

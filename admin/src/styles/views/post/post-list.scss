@@ -1,6 +1,6 @@
 .post-list {
   padding: 24px;
-  background-color: #1e1e1e;
+  background-color: var(--el-bg-color);
   border-radius: 8px;
   height: 100%;
   display: flex;
@@ -58,18 +58,18 @@
   }
 
   :deep(.el-input__wrapper) {
-    background-color: #141414;
-    box-shadow: 0 0 0 1px #303030;
+    background-color: var(--el-bg-color);
+    box-shadow: 0 0 0 1px var(--el-border-color);
   }
 
   :deep(.el-input__inner) {
-    color: #909399;
+    color: var(--el-text-color-regular);
   }
 
   :deep(.el-pagination) {
-    --el-pagination-bg-color: #1e1e1e;
-    --el-pagination-hover-color: #409EFF;
-    --el-text-color-regular: #909399;
-    --el-disabled-bg-color: #141414;
+    --el-pagination-bg-color: var(--el-bg-color);
+    --el-pagination-hover-color: var(--el-color-primary);
+    --el-text-color-regular: var(--el-text-color-regular);
+    --el-disabled-bg-color: var(--el-fill-color-blank);
   }
 } 

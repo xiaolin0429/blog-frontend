@@ -1,0 +1,67 @@
+@use './_variables' as *;
+
+// 淡入淡出
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity $transition-duration ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+// 滑动
+.slide-fade-enter-active {
+  transition: all $transition-duration ease-out;
+}
+
+.slide-fade-leave-active {
+  transition: all $transition-duration cubic-bezier(1, 0.5, 0.8, 1);
+}
+
+.slide-fade-enter-from,
+.slide-fade-leave-to {
+  transform: translateX(20px);
+  opacity: 0;
+}
+
+// 缩放
+.scale-enter-active,
+.scale-leave-active {
+  transition: all $transition-duration ease;
+}
+
+.scale-enter-from,
+.scale-leave-to {
+  transform: scale(0.9);
+  opacity: 0;
+}
+
+// 列表过渡
+.list-move,
+.list-enter-active,
+.list-leave-active {
+  transition: all $transition-duration ease;
+}
+
+.list-enter-from,
+.list-leave-to {
+  opacity: 0;
+  transform: translateX(30px);
+}
+
+.list-leave-active {
+  position: absolute;
+}
+
+// 路由过渡
+.router-fade-enter-active,
+.router-fade-leave-active {
+  transition: opacity $transition-duration ease;
+}
+
+.router-fade-enter-from,
+.router-fade-leave-to {
+  opacity: 0;
+} 

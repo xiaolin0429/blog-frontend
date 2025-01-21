@@ -31,6 +31,7 @@
           <el-button
             type="primary"
             :loading="loading"
+            class="login-button"
             @click="handleLogin"
           >
             登录
@@ -43,19 +44,21 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { User, Lock } from '@element-plus/icons-vue'
 import type { FormInstance, FormRules } from 'element-plus'
-import { login } from '@/api/auth'
+import { useUserStore } from '@/store/modules/user'
 
 const router = useRouter()
+const route = useRoute()
+const userStore = useUserStore()
 const formRef = ref<FormInstance>()
 const loading = ref(false)
 
 const form = ref({
-  username: '',
-  password: '',
+  username: 'admin',
+  password: 'admin',
   remember: false
 })
 
@@ -77,20 +80,15 @@ const handleLogin = async () => {
     if (valid) {
       loading.value = true
       try {
-        const response = await login(form.value)
-        if (response.code === 200) {
-          const { access, refresh, user } = response.data
-          localStorage.setItem('token', access)
-          localStorage.setItem('refresh_token', refresh)
-          localStorage.setItem('user', JSON.stringify(user))
+        const success = await userStore.login(form.value.username, form.value.password)
+        if (success) {
           ElMessage.success('登录成功')
-          router.push('/')
-        } else {
-          ElMessage.error(response.message || '登录失败')
+          const redirect = route.query.redirect as string
+          router.push(redirect || '/')
         }
       } catch (error: any) {
         console.error('登录失败:', error)
-        ElMessage.error(error.response?.data?.message || '登录失败，请检查用户名和密码')
+        ElMessage.error('登录失败，请检查用户名和密码')
       } finally {
         loading.value = false
       }
@@ -100,6 +98,6 @@ const handleLogin = async () => {
 </script>
 
 <style lang="scss">
-@use '@/styles/variables.scss' as *;
-@use '@/styles/views/login/index.scss' as *;
+@use 'sass:color';
+@use '@/styles/views/login/index.scss';
 </style> 

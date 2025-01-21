@@ -18,9 +18,9 @@
         :default-active="activeMenu"
         class="el-menu-vertical"
         :collapse="isCollapse"
-        background-color="#1e1e1e"
-        text-color="#909399"
-        active-text-color="#409EFF"
+        :background-color="isDark ? '#1e1e1e' : '#ffffff'"
+        :text-color="isDark ? '#909399' : '#303133'"
+        :active-text-color="'var(--el-color-primary)'"
         :router="true"
         @select="handleSelect"
       >
@@ -147,8 +147,22 @@
           </el-button>
         </div>
         <div class="header-right">
-          <el-button link>
-            <el-icon :size="20"><Setting /></el-icon>
+          <el-button
+            link
+            @click="toggleTheme"
+            :title="isDark ? '切换到浅色模式' : '切换到深色模式'"
+          >
+            <el-icon :size="20">
+              <component :is="isDark ? 'Sunny' : 'Moon'" />
+            </el-icon>
+          </el-button>
+          <el-button
+            link
+            @click="handleRefresh"
+          >
+            <el-icon :size="20">
+              <Refresh />
+            </el-icon>
           </el-button>
         </div>
       </el-header>
@@ -162,14 +176,17 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, markRaw } from 'vue'
+import { ref, watch, markRaw, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import defaultAvatar from '@/assets/images/avatars/default-avatar.png'
 import {
   Odometer, Document, Files, ChatDotRound, FolderOpened,
   Link, Timer, Brush, Menu, Connection, User, Setting,
-  DataLine, Box, Tools, Shop, Expand, Fold, Refresh
+  DataLine, Box, Tools, Shop, Expand, Fold, Refresh,
+  Moon, Sunny
 } from '@element-plus/icons-vue'
+import { useThemeStore } from '@/store/common/theme'
+import { storeToRefs } from 'pinia'
 
 const route = useRoute()
 const router = useRouter()
@@ -177,11 +194,16 @@ const isCollapse = ref(false)
 const searchText = ref('')
 const activeMenu = ref(route.path)
 
+const themeStore = useThemeStore()
+const { mode: themeMode } = storeToRefs(themeStore)
+const isDark = computed(() => themeMode.value === 'dark')
+
 // 将图标组件标记为非响应式
 const icons = markRaw({
   Odometer, Document, Files, ChatDotRound, FolderOpened,
   Link, Timer, Brush, Menu, Connection, User, Setting,
-  DataLine, Box, Tools, Shop, Expand, Fold, Refresh
+  DataLine, Box, Tools, Shop, Expand, Fold, Refresh,
+  Moon, Sunny
 })
 
 // 监听路由变化，更新激活的菜单项
@@ -197,17 +219,32 @@ const handleSelect = (index: string) => {
   console.log('Menu selected:', index)
   router.push(index)
 }
+
+const toggleTheme = () => {
+  themeStore.toggleMode()
+  // 手动更新 Element Plus 的主题
+  const html = document.documentElement
+  if (themeMode.value === 'dark') {
+    html.classList.add('dark')
+  } else {
+    html.classList.remove('dark')
+  }
+}
+
+const handleRefresh = () => {
+  window.location.reload()
+}
 </script>
 
 <style scoped>
 .layout-container {
   height: 100vh;
-  background-color: #141414;
+  background-color: var(--el-bg-color-page);
 }
 
 .aside {
-  background-color: #1e1e1e;
-  border-right: 1px solid #303030;
+  background-color: var(--el-bg-color);
+  border-right: 1px solid var(--el-border-color);
   display: flex;
   flex-direction: column;
   transition: width 0.3s;
@@ -218,7 +255,7 @@ const handleSelect = (index: string) => {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-bottom: 1px solid #303030;
+  border-bottom: 1px solid var(--el-border-color);
   overflow: hidden;
 }
 
@@ -232,16 +269,16 @@ const handleSelect = (index: string) => {
 }
 
 .dark-input :deep(.el-input__wrapper) {
-  background-color: #141414;
-  box-shadow: 0 0 0 1px #303030;
+  background-color: var(--el-bg-color-page);
+  box-shadow: 0 0 0 1px var(--el-border-color);
 }
 
 .dark-input :deep(.el-input__inner) {
-  color: #909399;
+  color: var(--el-text-color-regular);
 }
 
 .dark-input :deep(.el-input__inner::placeholder) {
-  color: #606266;
+  color: var(--el-text-color-secondary);
 }
 
 .el-menu-vertical {
@@ -278,8 +315,8 @@ const handleSelect = (index: string) => {
 }
 
 .header {
-  background-color: #1e1e1e;
-  border-bottom: 1px solid #303030;
+  background-color: var(--el-bg-color);
+  border-bottom: 1px solid var(--el-border-color);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -287,40 +324,40 @@ const handleSelect = (index: string) => {
 }
 
 .header :deep(.el-button) {
-  color: #909399;
+  color: var(--el-text-color-regular);
 }
 
 .main {
-  background-color: #141414;
+  background-color: var(--el-bg-color-page);
   padding: 24px;
-  color: #909399;
+  color: var(--el-text-color-regular);
 }
 
 .el-menu-vertical :deep(.el-sub-menu__title) {
-  color: #909399;
+  color: var(--el-text-color-regular);
 }
 
 .el-menu-vertical :deep(.el-sub-menu__title:hover) {
-  background-color: #2c2c2c;
+  background-color: var(--el-fill-color);
 }
 
 .el-menu-vertical :deep(.el-menu-item) {
-  color: #909399;
+  color: var(--el-text-color-regular);
 }
 
 .el-menu-vertical :deep(.el-menu-item:hover) {
-  background-color: #2c2c2c;
+  background-color: var(--el-fill-color);
 }
 
 .el-menu-vertical :deep(.el-menu-item.is-active) {
-  background-color: #2c2c2c;
-  color: #409EFF;
+  background-color: var(--el-fill-color);
+  color: var(--el-color-primary);
 }
 
 .menu-group {
   padding: 12px 20px 8px;
   font-size: 12px;
-  color: #606266;
+  color: var(--el-text-color-secondary);
   cursor: default;
   user-select: none;
 }
@@ -332,15 +369,15 @@ const handleSelect = (index: string) => {
 }
 
 .el-menu-vertical :deep(.el-menu-item.is-active) {
-  background-color: #2c2c2c;
-  color: #409EFF;
+  background-color: var(--el-fill-color);
+  color: var(--el-color-primary);
   border-radius: 4px;
   margin: 4px 12px;
   width: calc(100% - 24px);
 }
 
 .el-menu-vertical :deep(.el-menu-item:hover:not(.is-active)) {
-  background-color: #2c2c2c;
+  background-color: var(--el-fill-color);
   border-radius: 4px;
   margin: 4px 12px;
   width: calc(100% - 24px);
@@ -359,46 +396,46 @@ const handleSelect = (index: string) => {
 
 .header-left .el-button:hover,
 .header-right .el-button:hover {
-  background-color: #2c2c2c;
+  background-color: var(--el-fill-color);
 }
 
 /* 子菜单样式 */
 .el-menu-vertical :deep(.el-sub-menu__title) {
-  color: #909399;
+  color: var(--el-text-color-regular);
   height: 40px;
   line-height: 40px;
   margin: 4px 0;
 }
 
 .el-menu-vertical :deep(.el-sub-menu__title:hover) {
-  background-color: #2c2c2c;
+  background-color: var(--el-fill-color);
   border-radius: 4px;
   margin: 4px 12px;
   width: calc(100% - 24px);
 }
 
 .el-menu-vertical :deep(.el-sub-menu.is-active > .el-sub-menu__title) {
-  color: #409EFF;
+  color: var(--el-color-primary);
 }
 
 /* 子菜单内的菜单项样式 */
 .el-menu-vertical :deep(.el-sub-menu .el-menu-item) {
   min-width: unset;
-  background-color: #141414;
+  background-color: var(--el-bg-color-page);
 }
 
 .el-menu-vertical :deep(.el-sub-menu .el-menu-item:hover:not(.is-active)) {
-  background-color: #2c2c2c;
+  background-color: var(--el-fill-color);
 }
 
 .el-menu-vertical :deep(.el-sub-menu .el-menu-item.is-active) {
-  background-color: #2c2c2c;
+  background-color: var(--el-fill-color);
 }
 
 /* 收起时的子菜单弹出样式 */
 .el-menu--popup {
-  background-color: #1e1e1e !important;
-  border: 1px solid #303030;
+  background-color: var(--el-bg-color) !important;
+  border: 1px solid var(--el-border-color);
   padding: 4px;
   min-width: 180px;
 }
@@ -411,18 +448,18 @@ const handleSelect = (index: string) => {
 }
 
 .el-menu--popup .el-menu-item:hover:not(.is-active) {
-  background-color: #2c2c2c !important;
+  background-color: var(--el-fill-color) !important;
 }
 
 .el-menu--popup .el-menu-item.is-active {
-  background-color: #2c2c2c !important;
-  color: #409EFF !important;
+  background-color: var(--el-fill-color) !important;
+  color: var(--el-color-primary) !important;
 }
 
 .user-info {
   padding: 12px;
-  border-top: 1px solid #303030;
-  background-color: #1e1e1e;
+  border-top: 1px solid var(--el-border-color);
+  background-color: var(--el-bg-color);
 }
 
 .user-avatar {
@@ -440,14 +477,14 @@ const handleSelect = (index: string) => {
 
 .username {
   font-size: 14px;
-  color: #E6E6E6;
+  color: var(--el-text-color-primary);
   line-height: 1.2;
 }
 
 .role-tag {
   background-color: transparent !important;
-  border-color: #303030 !important;
-  color: #909399 !important;
+  border-color: var(--el-border-color) !important;
+  color: var(--el-text-color-regular) !important;
   font-size: 12px !important;
   padding: 0 6px !important;
   height: 20px !important;
@@ -463,11 +500,11 @@ const handleSelect = (index: string) => {
 .action-btn {
   padding: 6px !important;
   height: 28px !important;
-  color: #909399 !important;
+  color: var(--el-text-color-regular) !important;
 }
 
 .action-btn:hover {
-  background-color: #2c2c2c !important;
+  background-color: var(--el-fill-color) !important;
   border-radius: 4px;
 }
 

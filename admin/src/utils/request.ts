@@ -2,14 +2,16 @@ import axios from 'axios'
 import type { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
 import { ElMessage } from 'element-plus'
 import type { ApiResponse } from '@/types/api'
+import { getToken, getRefreshToken, setToken, clearTokens } from './auth/token'
+import router from '@/router'
 
 // 基础配置
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
+const BASE_URL = import.meta.env.VITE_API_BASE_URL
 const API_PREFIX = '/api/v1'
 
 // 创建 axios 实例
 const service = axios.create({
-  baseURL: BASE_URL,  // 使用基础 URL
+  baseURL: BASE_URL,
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json'
@@ -24,7 +26,7 @@ let retryQueue: ((token: string) => void)[] = []
 // 刷新token
 const refreshToken = async () => {
   try {
-    const refresh = localStorage.getItem('refresh_token')
+    const refresh = getRefreshToken()
     if (!refresh) {
       throw new Error('No refresh token')
     }
@@ -38,19 +40,17 @@ const refreshToken = async () => {
       }
     })
     
-    const response = await refreshService.post(
+    const { data } = await refreshService.post<ApiResponse<{ access: string }>>(
       `${API_PREFIX}/auth/refresh/`,
       { refresh }
     )
     
-    const { access } = response.data.data
-    localStorage.setItem('token', access)
+    const { access } = data.data
+    setToken(access)
     return access
   } catch (error) {
-    localStorage.removeItem('token')
-    localStorage.removeItem('refresh_token')
-    localStorage.removeItem('user')
-    window.location.href = '/login'
+    clearTokens()
+    router.push('/login')
     throw error
   }
 }
@@ -63,15 +63,13 @@ service.interceptors.request.use(
       config.url = `${API_PREFIX}${config.url}`
     }
     
-    console.log('Request:', {
-      url: config.url,
-      method: config.method,
-      params: config.params,
-      data: config.data
-    })
+    // 确保URL以斜杠结尾
+    if (config.url && !config.url.endsWith('/')) {
+      config.url = `${config.url}/`
+    }
     
     // 从 localStorage 获取 token
-    const token = localStorage.getItem('token')
+    const token = getToken()
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
@@ -85,21 +83,22 @@ service.interceptors.request.use(
 
 // 响应拦截器
 service.interceptors.response.use(
-  (response: AxiosResponse) => {
-    // 记录响应信息
-    console.log('Response:', {
-      url: response.config.url,
-      status: response.status,
-      data: response.data
-    })
-    // 直接返回响应数据
-    return response.data
+  (response: AxiosResponse<ApiResponse>) => {
+    const { code, message, data } = response.data
+    
+    // 处理业务错误
+    if (code !== 200) {
+      ElMessage.error(message)
+      return Promise.reject(new Error(message))
+    }
+    
+    return data
   },
   async (error) => {
     const { config, response } = error
     
     // 如果是401错误，且不是刷新token的请求
-    if (response?.status === 401 && !config.url.includes('/auth/refresh')) {
+    if (response?.status === 401 && !config.url.includes('/auth/refresh/')) {
       if (!isRefreshing) {
         isRefreshing = true
         try {
@@ -128,10 +127,9 @@ service.interceptors.response.use(
       }
     }
 
+    // 统一错误处理
     let message = '请求失败'
-    if (response?.data?.detail) {
-      message = response.data.detail
-    } else if (response?.data?.message) {
+    if (response?.data?.message) {
       message = response.data.message
     } else if (response?.status === 403) {
       message = '禁止访问'

@@ -1,16 +1,23 @@
 <template>
-  <router-view />
+  <el-config-provider>
+    <router-view />
+  </el-config-provider>
 </template>
 
 <script setup lang="ts">
+import { onMounted } from 'vue'
 import { useThemeStore } from '@/store/common/theme'
 
 const themeStore = useThemeStore()
-themeStore.initTheme()
+
+onMounted(() => {
+  // 初始化主题
+  themeStore.initTheme()
+})
 </script>
 
 <style>
 #app {
-  min-height: 100vh;
+  height: 100vh;
 }
 </style> 

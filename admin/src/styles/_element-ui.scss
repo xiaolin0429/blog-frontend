@@ -1,0 +1,103 @@
+@use './_variables' as v;
+@use './_mixins' as m;
+
+// Element Plus 样式覆盖
+
+// 按钮样式
+.el-button {
+  &--primary {
+    --el-button-hover-bg-color: var(--el-color-primary-light-3);
+    --el-button-hover-border-color: var(--el-color-primary-light-3);
+  }
+  
+  &--text {
+    padding: 0;
+    height: auto;
+  }
+}
+
+// 表单样式
+.el-form {
+  &-item {
+    margin-bottom: v.$el-form-item-margin-bottom;
+    
+    &__label {
+      font-weight: 500;
+      color: var(--el-text-color-primary);
+    }
+  }
+}
+
+// 表格样式
+.el-table {
+  --el-table-border-color: var(--el-border-color-lighter);
+  
+  th {
+    background-color: var(--el-fill-color-light);
+    font-weight: 500;
+  }
+  
+  .cell {
+    @include m.text-ellipsis(1);
+  }
+}
+
+// 分页样式
+.el-pagination {
+  margin-top: v.$el-pagination-margin;
+  justify-content: flex-end;
+}
+
+// 对话框样式
+.el-dialog {
+  padding: v.$el-dialog-padding-primary;
+  border-radius: v.$border-radius-base;
+  
+  &__header {
+    margin-right: 0;
+    padding: v.$el-dialog-padding-primary;
+    border-bottom: 1px solid var(--el-border-color-lighter);
+  }
+  
+  &__body {
+    padding: v.$el-dialog-padding-primary;
+  }
+  
+  &__footer {
+    padding: v.$el-dialog-padding-primary;
+    border-top: 1px solid var(--el-border-color-lighter);
+  }
+}
+
+// 卡片样式
+.el-card {
+  --el-card-border-color: var(--el-border-color-lighter);
+  border-radius: v.$border-radius-base;
+  
+  &__header {
+    border-bottom: 1px solid var(--el-border-color-lighter);
+    padding: v.$el-card-padding;
+  }
+}
+
+// 标签样式
+.el-tag {
+  border-radius: v.$border-radius-base;
+  
+  & + & {
+    margin-left: v.$el-tag-margin;
+  }
+}
+
+// 下拉菜单样式
+.el-dropdown-menu {
+  padding: v.$el-dropdown-menu-padding;
+  
+  &__item {
+    padding: v.$el-dropdown-item-padding;
+    
+    &:hover {
+      background-color: var(--el-fill-color-light);
+    }
+  }
+} 

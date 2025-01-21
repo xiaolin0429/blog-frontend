@@ -1,27 +1,28 @@
-// 主色调
-$primary-color: #409EFF;
-$success-color: #67C23A;
-$warning-color: #E6A23C;
-$danger-color: #F56C6C;
-$info-color: #909399;
+// 主题色
+$primary: #409eff;
+$success: #67c23a;
+$warning: #e6a23c;
+$danger: #f56c6c;
+$info: #909399;
 
-// 文字颜色
-$text-primary: #E6E6E6;
-$text-regular: #909399;
-$text-secondary: #606266;
-$text-placeholder: #A8ABB2;
+// 文本颜色
+$text-color-primary: #303133;
+$text-color-regular: #606266;
+$text-color-secondary: #909399;
+$text-color-placeholder: #c0c4cc;
 
 // 边框颜色
-$border-color-base: #303030;
-$border-color-light: #404040;
-$border-color-lighter: #505050;
+$border-color-base: #dcdfe6;
+$border-color-light: #e4e7ed;
+$border-color-lighter: #ebeef5;
+$border-color-extra-light: #f2f6fc;
 
 // 背景颜色
-$bg-color: #141414;
-$bg-color-page: #0a0a0a;
-$bg-color-overlay: #1e1e1e;
+$bg-color: #ffffff;
+$bg-color-page: #f2f3f5;
+$bg-color-overlay: #ffffff;
 
 // 功能色
-$link-color: $primary-color;
+$link-color: $primary;
 $hover-color: #2c2c2c;
 $active-color: #363636; 

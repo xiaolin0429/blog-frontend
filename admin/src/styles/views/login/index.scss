@@ -1,84 +1,88 @@
-@use '../../variables.scss' as *;
+@use 'sass:color';
+@use '../../_variables' as v;
+@use '../../_mixins' as m;
 
 .login-container {
+  @include m.flex(row, center, center);
   min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: var(--el-bg-color);
+  background-color: v.$bg-color-page;
 
   .login-card {
-    width: 400px;
-    padding: $spacing-larger;
-    background-color: var(--el-bg-color-overlay);
-    border-radius: $border-radius-large;
-    box-shadow: var(--el-box-shadow-light);
+    width: 100%;
+    max-width: 480px;
+    padding: v.$spacing-extra-large;
+    background-color: v.$bg-color;
+    border-radius: v.$border-radius-base;
+    @include m.box-shadow(light);
 
     .login-title {
-      font-size: $font-size-larger;
-      font-weight: bold;
+      margin-bottom: v.$spacing-large;
       text-align: center;
-      margin-bottom: $spacing-larger;
-      color: var(--el-text-color-primary);
+      font-size: v.$font-size-extra-large;
+      font-weight: 600;
+      color: v.$text-color-primary;
     }
 
     :deep(.el-input) {
       .el-input__wrapper {
-        background-color: var(--el-bg-color);
-        box-shadow: 0 0 0 1px var(--el-border-color);
+        background-color: v.$bg-color;
+        box-shadow: 0 0 0 1px v.$border-color-base;
 
         &:hover {
-          box-shadow: 0 0 0 1px var(--el-border-color-light);
+          box-shadow: 0 0 0 1px v.$border-color-light;
         }
 
         &.is-focus {
-          box-shadow: 0 0 0 1px var(--el-color-primary);
+          box-shadow: 0 0 0 1px v.$primary-color;
         }
       }
 
       .el-input__inner {
-        color: var(--el-text-color-regular);
+        color: v.$text-color-regular;
 
         &::placeholder {
-          color: var(--el-text-color-placeholder);
+          color: v.$text-color-placeholder;
         }
       }
 
       .el-input__prefix {
-        color: var(--el-text-color-secondary);
-      }
-    }
-
-    :deep(.el-checkbox) {
-      .el-checkbox__label {
-        color: var(--el-text-color-regular);
-      }
-
-      &.is-checked {
-        .el-checkbox__label {
-          color: var(--el-color-primary);
-        }
-      }
-    }
-
-    :deep(.el-button) {
-      width: 100%;
-      margin-top: $spacing-base;
-      
-      &.is-loading {
-        background-color: var(--el-color-primary-light-3);
+        color: v.$text-color-secondary;
       }
     }
 
     :deep(.el-form-item) {
-      margin-bottom: $spacing-base;
+      margin-bottom: v.$spacing-medium;
 
       &:last-child {
         margin-bottom: 0;
       }
 
       .el-form-item__error {
-        color: var(--el-color-danger);
+        color: v.$danger-color;
+      }
+    }
+
+    :deep(.el-button) {
+      width: 100%;
+      margin-top: v.$spacing-large;
+      
+      &.is-loading {
+        background-color: color.adjust(v.$primary-color, $lightness: 20%);
+      }
+    }
+
+    .register-link {
+      margin-top: v.$spacing-medium;
+      text-align: center;
+      color: v.$text-color-secondary;
+
+      a {
+        color: v.$primary-color;
+        text-decoration: none;
+
+        &:hover {
+          color: color.adjust(v.$primary-color, $lightness: 20%);
+        }
       }
     }
   }

@@ -1,23 +1,36 @@
 .post-filter {
-  background-color: #141414;
+  background-color: var(--el-bg-color);
   padding: 16px;
   border-radius: 8px;
+  border: 1px solid var(--el-border-color-light);
 
   :deep(.el-select__popper) {
-    background-color: #1e1e1e !important;
-    border: 1px solid #303030 !important;
+    background-color: var(--el-bg-color);
+    border: 1px solid var(--el-border-color);
   }
 
   :deep(.el-select-dropdown__item) {
-    color: #909399;
+    color: var(--el-text-color-regular);
 
     &.hover {
-      background-color: #2c2c2c !important;
+      background-color: var(--el-fill-color-light);
     }
 
     &.selected {
-      background-color: #2c2c2c !important;
-      color: #409EFF;
+      background-color: var(--el-fill-color-light);
+      color: var(--el-color-primary);
+    }
+  }
+
+  .el-form {
+    // 下拉框统一样式
+    .el-select {
+      width: 160px;
+    }
+
+    // 日期选择器样式
+    .el-date-picker {
+      width: 240px;
     }
   }
 } 

@@ -1,0 +1,85 @@
+// 导入主题变量
+@use './themes/variables/colors' as c;
+@use './themes/variables/sizes' as s;
+
+// 主题色
+$primary-color: c.$primary;
+$success-color: c.$success;
+$warning-color: c.$warning;
+$danger-color: c.$danger;
+$info-color: c.$info;
+
+// 文字颜色
+$text-color-primary: c.$text-color-primary;
+$text-color-regular: c.$text-color-regular;
+$text-color-secondary: c.$text-color-secondary;
+$text-color-placeholder: c.$text-color-placeholder;
+
+// 背景色
+$bg-color: c.$bg-color;
+$bg-color-page: c.$bg-color-page;
+$bg-color-overlay: c.$bg-color-overlay;
+
+// 边框颜色
+$border-color-base: c.$border-color-base;
+$border-color-light: c.$border-color-light;
+$border-color-lighter: c.$border-color-lighter;
+$border-color-extra-light: c.$border-color-extra-light;
+
+// 字体大小
+$font-size-extra-large: s.$font-size-extra-large;
+$font-size-large: s.$font-size-large;
+$font-size-medium: s.$font-size-medium;
+$font-size-base: s.$font-size-base;
+$font-size-small: s.$font-size-small;
+$font-size-extra-small: s.$font-size-extra-small;
+
+// 间距
+$spacing-extra-large: s.$spacing-extra-large;
+$spacing-large: s.$spacing-large;
+$spacing-medium: s.$spacing-medium;
+$spacing-base: s.$spacing-base;
+$spacing-small: s.$spacing-small;
+$spacing-extra-small: s.$spacing-extra-small;
+
+// 圆角
+$border-radius-large: s.$border-radius-large;
+$border-radius-base: s.$border-radius-base;
+$border-radius-small: s.$border-radius-small;
+
+// 阴影
+$box-shadow-base: 0 2px 4px rgba(0, 0, 0, 0.12), 0 0 6px rgba(0, 0, 0, 0.04);
+$box-shadow-light: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+$box-shadow-dark: 0 2px 4px rgba(0, 0, 0, 0.12), 0 0 6px rgba(0, 0, 0, 0.12);
+
+// 过渡
+$transition-duration: 0.3s;
+$transition-duration-fast: 0.2s;
+$transition-duration-slow: 0.4s;
+
+// 断点
+$breakpoint-xs: 480px;
+$breakpoint-sm: 576px;
+$breakpoint-md: 768px;
+$breakpoint-lg: 992px;
+$breakpoint-xl: 1200px;
+$breakpoint-xxl: 1600px;
+
+// z-index
+$z-index-normal: 1;
+$z-index-dropdown: 1000;
+$z-index-sticky: 1020;
+$z-index-fixed: 1030;
+$z-index-modal-backdrop: 1040;
+$z-index-modal: 1050;
+$z-index-popover: 1060;
+$z-index-tooltip: 1070;
+
+// Element Plus 组件变量
+$el-form-item-margin-bottom: $spacing-medium;
+$el-pagination-margin: $spacing-medium;
+$el-dialog-padding-primary: $spacing-medium;
+$el-card-padding: $spacing-medium;
+$el-tag-margin: $spacing-small;
+$el-dropdown-menu-padding: $spacing-small 0;
+$el-dropdown-item-padding: $spacing-small $spacing-medium; 
