@@ -364,6 +364,7 @@ const rules = {
 // 分类和标签数据
 const categories = ref<Category[]>([])
 const tags = ref<Tag[]>([])
+const total = ref(0)
 const loading = ref(false)
 const autoSaving = ref(false)
 const lastSavedTime = ref<string>('')
@@ -684,20 +685,30 @@ const loadPost = async () => {
   }
 }
 
-// 加载分类和标签
-const loadCategoriesAndTags = async () => {
+// 加载分类列表
+const loadCategories = async () => {
   try {
-    const [categoriesRes, tagsRes] = await Promise.all([
-      getCategories({ page: 1, size: 100, ordering: 'name' }),
-      getTags({ page: 1, size: 100, ordering: 'name' })
-    ])
-    categories.value = categoriesRes.items
-    tags.value = tagsRes.items
+    const response = await getCategories({ page: 1, size: 100, ordering: 'name' })
+    if (response.code === 200) {
+      categories.value = response.data
+    }
   } catch (error) {
-    console.error('加载分类和标签失败:', error)
-    ElMessage.error('加载分类和标签失败')
-    categories.value = []
-    tags.value = []
+    console.error('加载分类列表失败:', error)
+    ElMessage.error('加载分类列表失败')
+  }
+}
+
+// 加载标签列表
+const loadTags = async () => {
+  try {
+    const response = await getTags({ page: 1, size: 100, ordering: 'name' })
+    if (response.code === 200) {
+      tags.value = response.data.results
+      total.value = response.data.count
+    }
+  } catch (error) {
+    console.error('加载标签列表失败:', error)
+    ElMessage.error('加载标签列表失败')
   }
 }
 
@@ -754,7 +765,8 @@ const handleRouteChange = (path: string) => {
 onMounted(async () => {
   await Promise.all([
     loadPost(),
-    loadCategoriesAndTags()
+    loadCategories(),
+    loadTags()
   ])
   startAutoSave()
 })
@@ -767,50 +779,5 @@ onBeforeUnmount(() => {
 </script>
 
 <style lang="scss">
-@use '@/styles/views/post/post-edit';
-
-.post-edit {
-  .toolbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 16px;
-    height: 56px;
-    background-color: var(--el-bg-color);
-    border-bottom: 1px solid var(--el-border-color-light);
-
-    .left {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .center {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-
-      .el-divider--vertical {
-        margin: 0;
-        height: 16px;
-      }
-    }
-
-    .right {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-  }
-
-  .card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .w-full {
-    width: 100%;
-  }
-}
+@import '@/styles/views/post/post-edit.scss';
 </style> 

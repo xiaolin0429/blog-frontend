@@ -106,7 +106,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { FormInstance } from 'element-plus'
-import { getCategories, createCategory } from '@/api/post'
+import { getCategories, createCategory, updateCategory, deleteCategory } from '@/api/post'
 import type { Category } from '@/types/post'
 
 // 表格数据
@@ -170,21 +170,23 @@ const rules = {
 }
 
 // 加载分类列表
-const loadCategories = async () => {
+const loadCategories = async (resetPage = false) => {
   try {
     loading.value = true
+    // 如果需要重置分页，则重置参数
+    if (resetPage) {
+      currentPage.value = 1
+      pageSize.value = 10
+    }
+
     const response = await getCategories({
       page: currentPage.value,
       size: pageSize.value,
       ordering: '-created_at'
     })
     
-    // 检查响应数据
-    console.log('Categories response:', response)
-    
-    // 处理响应数据
     if (response.code === 200 && Array.isArray(response.data)) {
-      // 构建分类树，只保留顶级分类和它们的子分类
+      // 构建分类树
       const categoryMap = new Map<number, Category>()
       const rootCategories: Category[] = []
       
@@ -211,12 +213,8 @@ const loadCategories = async () => {
         }
       })
       
-      // 更新数据
       categories.value = rootCategories
-      total.value = rootCategories.length
-      
-      // 检查处理后的数据结构
-      console.log('Processed categories:', rootCategories)
+      total.value = response.data.length // 使用实际的总数
     } else {
       categories.value = []
       total.value = 0
@@ -284,12 +282,12 @@ const handleDelete = (row: Category) => {
     }
   ).then(async () => {
     try {
-      // TODO: 实现删除分类的 API 调用
+      await deleteCategory(row.id)
       ElMessage.success('删除成功')
-      loadCategories()
+      await loadCategories(true) // 重置分页并重新加载
     } catch (error) {
       console.error('删除分类失败:', error)
-      ElMessage.error('删除分类失败')
+      ElMessage.error('删除失败')
     }
   }).catch(() => {})
 }
@@ -307,15 +305,19 @@ const handleSubmit = async () => {
       if (code === 200 || code === 201) {
         ElMessage.success('创建成功')
         dialogVisible.value = false
-        loadCategories()
+        await loadCategories(true) // 重置分页并重新加载
       } else {
         ElMessage.error(message || '创建失败')
       }
     } else {
-      // TODO: 实现编辑分类的 API 调用
-      ElMessage.success('编辑成功')
-      dialogVisible.value = false
-      loadCategories()
+      const { code, message } = await updateCategory(currentEditId.value!, form.value)
+      if (code === 200) {
+        ElMessage.success('编辑成功')
+        dialogVisible.value = false
+        await loadCategories(true) // 重置分页并重新加载
+      } else {
+        ElMessage.error(message || '编辑失败')
+      }
     }
   } catch (error) {
     console.error('提交表单失败:', error)
@@ -328,17 +330,17 @@ const handleSubmit = async () => {
 // 分页处理
 const handleSizeChange = (val: number) => {
   pageSize.value = val
-  loadCategories()
+  loadCategories(false) // 不重置分页，使用新的pageSize加载
 }
 
 const handleCurrentChange = (val: number) => {
   currentPage.value = val
-  loadCategories()
+  loadCategories(false) // 不重置分页，使用新的currentPage加载
 }
 
 // 生命周期钩子
 onMounted(() => {
-  loadCategories()
+  loadCategories(true) // 初始加载时重置分页
 })
 </script>
 
