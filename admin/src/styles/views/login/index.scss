@@ -5,48 +5,61 @@
 .login-container {
   @include m.flex(row, center, center);
   min-height: 100vh;
-  background-color: v.$bg-color-page;
+  background-color: var(--el-bg-color-page);
+  transition: background-color 0.3s ease;
 
   .login-card {
     width: 100%;
     max-width: 480px;
     padding: v.$spacing-extra-large;
-    background-color: v.$bg-color;
+    background-color: var(--el-bg-color);
     border-radius: v.$border-radius-base;
+    border: 1px solid var(--el-border-color-light);
+    transition: all 0.3s ease;
+    
     @include m.box-shadow(light);
+    
+    :root.dark & {
+      @include m.box-shadow(dark);
+    }
 
     .login-title {
       margin-bottom: v.$spacing-large;
       text-align: center;
       font-size: v.$font-size-extra-large;
       font-weight: 600;
-      color: v.$text-color-primary;
+      color: var(--el-text-color-primary);
+      transition: color 0.3s ease;
     }
 
     :deep(.el-input) {
       .el-input__wrapper {
-        background-color: v.$bg-color;
-        box-shadow: 0 0 0 1px v.$border-color-base;
+        background-color: var(--el-bg-color);
+        box-shadow: 0 0 0 1px var(--el-border-color-base);
+        transition: all 0.3s ease;
 
         &:hover {
-          box-shadow: 0 0 0 1px v.$border-color-light;
+          box-shadow: 0 0 0 1px var(--el-border-color-light);
         }
 
         &.is-focus {
-          box-shadow: 0 0 0 1px v.$primary-color;
+          box-shadow: 0 0 0 1px var(--el-color-primary);
         }
       }
 
       .el-input__inner {
-        color: v.$text-color-regular;
+        color: var(--el-text-color-regular);
+        transition: color 0.3s ease;
 
         &::placeholder {
-          color: v.$text-color-placeholder;
+          color: var(--el-text-color-placeholder);
+          transition: color 0.3s ease;
         }
       }
 
       .el-input__prefix {
-        color: v.$text-color-secondary;
+        color: var(--el-text-color-secondary);
+        transition: color 0.3s ease;
       }
     }
 
@@ -58,27 +71,53 @@
       }
 
       .el-form-item__error {
-        color: v.$danger-color;
+        color: var(--el-color-danger);
+        transition: color 0.3s ease;
+      }
+    }
+
+    :deep(.el-checkbox) {
+      .el-checkbox__label {
+        color: var(--el-text-color-regular);
+        transition: color 0.3s ease;
+      }
+
+      .el-checkbox__input.is-checked {
+        .el-checkbox__inner {
+          background-color: var(--el-color-primary);
+          border-color: var(--el-color-primary);
+        }
+
+        + .el-checkbox__label {
+          color: var(--el-color-primary);
+        }
       }
     }
 
     :deep(.el-button) {
       width: 100%;
       margin-top: v.$spacing-large;
+      transition: all 0.3s ease;
       
       &.is-loading {
         background-color: color.adjust(v.$primary-color, $lightness: 20%);
+      }
+
+      &:not(.is-loading):hover {
+        background-color: color.adjust(v.$primary-color, $lightness: 10%);
       }
     }
 
     .register-link {
       margin-top: v.$spacing-medium;
       text-align: center;
-      color: v.$text-color-secondary;
+      color: var(--el-text-color-secondary);
+      transition: color 0.3s ease;
 
       a {
-        color: v.$primary-color;
+        color: var(--el-color-primary);
         text-decoration: none;
+        transition: color 0.3s ease;
 
         &:hover {
           color: color.adjust(v.$primary-color, $lightness: 20%);
