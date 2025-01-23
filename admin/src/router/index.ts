@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
 import BasicLayout from '@/layouts/BasicLayout.vue'
+import { validateToken } from '@/utils/auth'
 
 const routes: RouteRecordRaw[] = [
   {
@@ -75,23 +76,41 @@ const router = createRouter({
 })
 
 // 路由守卫
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   console.log('Global beforeEach:', { to, from })
   
   // 设置页面标题
   document.title = to.meta.title ? `${to.meta.title} - 博客后台管理` : '博客后台管理'
 
+  // 如果是登录页面，直接放行
+  if (to.path === '/login') {
+    next()
+    return
+  }
+
   // 检查是否需要登录权限
   if (to.meta.requiresAuth) {
-    const token = localStorage.getItem('token')
-    console.log('Auth check:', { requiresAuth: true, hasToken: !!token })
-    if (!token) {
-      console.log('No token found, redirecting to login')
-      next({ name: 'Login' })
-      return
+    try {
+      const valid = await validateToken()
+      if (!valid) {
+        console.log('Token validation failed, redirecting to login')
+        next({ 
+          path: '/login', 
+          query: { redirect: to.fullPath }
+        })
+        return
+      }
+      next()
+    } catch (error) {
+      console.error('Token validation error:', error)
+      next({ 
+        path: '/login',
+        query: { redirect: to.fullPath }
+      })
     }
+  } else {
+    next()
   }
-  next()
 })
 
 router.afterEach((to, from) => {

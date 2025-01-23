@@ -8,11 +8,26 @@
 
 ## 环境要求
 
-- Node.js 16+
-- npm 8+ 或 yarn 1.22+
+### 必需环境
+- Node.js >= 16.0.0 (推荐使用 LTS 版本)
+- npm >= 11.0.0 (已更新到最新版本)
 - 操作系统：Windows/Linux/MacOS
 - 开发工具：推荐使用 VS Code
 - 浏览器：推荐使用 Chrome 最新版
+
+### 主要依赖版本
+- vue-tsc: 2.2.0
+- vite: 最新版
+- typescript: 最新版
+- tailwindcss: 最新版
+
+### 开发工具推荐配置
+VS Code 插件：
+- Vue Language Features (Volar)
+- TypeScript Vue Plugin (Volar)
+- Tailwind CSS IntelliSense
+- ESLint
+- Prettier
 
 ## 开发环境
 
@@ -48,6 +63,21 @@ VITE_UPLOAD_URL=http://localhost:8000/api/v1/upload
 
 # 开发服务器端口
 VITE_PORT=5173
+
+# 开发服务器主机
+VITE_HOST=localhost
+
+# 是否启用HTTPS
+VITE_ENABLE_HTTPS=false
+
+# 资源公共路径
+VITE_PUBLIC_PATH=/
+
+# API请求超时时间(ms)
+VITE_API_TIMEOUT=10000
+
+# 是否启用Mock数据
+VITE_USE_MOCK=false
 ```
 
 后台项目配置 (`admin/.env`):
@@ -60,6 +90,21 @@ VITE_UPLOAD_URL=http://localhost:8000/api/v1/upload
 
 # 开发服务器端口
 VITE_PORT=5174
+
+# 开发服务器主机
+VITE_HOST=localhost
+
+# 是否启用HTTPS
+VITE_ENABLE_HTTPS=false
+
+# 资源公共路径
+VITE_PUBLIC_PATH=/
+
+# API请求超时时间(ms)
+VITE_API_TIMEOUT=10000
+
+# 是否启用Mock数据
+VITE_USE_MOCK=false
 ```
 
 ### 4. 启动开发服务器
@@ -96,50 +141,7 @@ npm run build
 
 构建产物将分别输出到 `front/dist` 和 `admin/dist` 目录。
 
-### 2. 部署配置
-
-Nginx配置示例：
-```nginx
-# 前台项目配置
-server {
-    listen 80;
-    server_name blog.example.com;
-    
-    location / {
-        root /path/to/blog-frontend/front/dist;
-        index index.html;
-        try_files $uri $uri/ /index.html;
-    }
-    
-    # API代理
-    location /api/ {
-        proxy_pass http://backend-api-url/api/;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-    }
-}
-
-# 后台项目配置
-server {
-    listen 80;
-    server_name admin.blog.example.com;
-    
-    location / {
-        root /path/to/blog-frontend/admin/dist;
-        index index.html;
-        try_files $uri $uri/ /index.html;
-    }
-    
-    # API代理
-    location /api/ {
-        proxy_pass http://backend-api-url/api/;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-    }
-}
-```
-
-### 3. 环境变量配置
+### 2. 生产环境配置
 
 生产环境变量配置 (`front/.env.production` 和 `admin/.env.production`):
 ```bash
@@ -151,20 +153,170 @@ VITE_UPLOAD_URL=/api/v1/upload
 
 # 资源公共路径
 VITE_PUBLIC_PATH=/
+
+# API请求超时时间(ms)
+VITE_API_TIMEOUT=10000
+
+# 是否启用压缩
+VITE_BUILD_COMPRESS=true
+
+# 压缩算法类型 gzip | brotli | none
+VITE_BUILD_COMPRESS_TYPE=gzip
+
+# 是否删除源码映射文件
+VITE_BUILD_SOURCE_MAP=false
+
+# 是否启用PWA
+VITE_PWA=false
+```
+
+### 3. Nginx配置示例
+
+```nginx
+# 开启gzip
+gzip on;
+gzip_min_length 1k;
+gzip_comp_level 6;
+gzip_types text/plain text/css text/javascript application/json application/javascript application/x-javascript application/xml;
+gzip_vary on;
+gzip_proxied any;
+
+# 前台项目配置
+server {
+    listen 80;
+    server_name blog.example.com;
+    
+    # 强制跳转HTTPS
+    return 301 https://$server_name$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name blog.example.com;
+    
+    # SSL配置
+    ssl_certificate /path/to/cert.pem;
+    ssl_certificate_key /path/to/key.pem;
+    ssl_session_timeout 1d;
+    ssl_session_cache shared:SSL:50m;
+    ssl_session_tickets off;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384;
+    ssl_prefer_server_ciphers off;
+    
+    # HSTS配置
+    add_header Strict-Transport-Security "max-age=63072000" always;
+    
+    location / {
+        root /path/to/blog-frontend/front/dist;
+        index index.html;
+        try_files $uri $uri/ /index.html;
+        
+        # 缓存配置
+        expires 7d;
+        add_header Cache-Control "public, no-transform";
+    }
+    
+    # API代理
+    location /api/ {
+        proxy_pass http://backend-api-url/api/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        
+        # WebSocket支持
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        
+        # 超时配置
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
+    }
+}
+
+# 后台项目配置
+server {
+    listen 443 ssl http2;
+    server_name admin.blog.example.com;
+    
+    # SSL配置（同上）
+    ...
+    
+    location / {
+        root /path/to/blog-frontend/admin/dist;
+        index index.html;
+        try_files $uri $uri/ /index.html;
+        
+        # 禁止搜索引擎索引
+        add_header X-Robots-Tag "noindex, nofollow, nosnippet, noarchive";
+        
+        # 安全头配置
+        add_header X-Frame-Options "DENY";
+        add_header X-Content-Type-Options "nosniff";
+        add_header X-XSS-Protection "1; mode=block";
+    }
+    
+    # API代理（同上）
+    location /api/ {
+        ...
+    }
+}
 ```
 
 ### 4. 部署检查清单
 
-- [ ] Node.js版本检查
-- [ ] 环境变量配置
+#### 基础环境检查
+- [ ] Node.js版本 >= 16.0.0
+- [ ] npm版本 >= 11.0.0
+- [ ] 系统内存 >= 2GB
+- [ ] 磁盘空间 >= 10GB
+
+#### 构建检查
+- [ ] 环境变量配置完整
 - [ ] 依赖安装完整性
 - [ ] 构建命令执行成功
-- [ ] Nginx配置正确
-- [ ] HTTPS证书配置
-- [ ] 跨域配置
+- [ ] 构建产物完整性检查
+- [ ] 源码映射文件处理
+
+#### Nginx配置检查
+- [ ] SSL证书配置
+- [ ] HTTPS重定向配置
+- [ ] 安全头配置
 - [ ] 缓存策略配置
-- [ ] 错误页面配置
-- [ ] 监控配置
+- [ ] 跨域配置
+- [ ] WebSocket配置
+- [ ] 超时配置
+
+#### 性能优化检查
+- [ ] 静态资源压缩
+- [ ] 浏览器缓存配置
+- [ ] CDN配置
+- [ ] 图片优化
+- [ ] 首屏加载优化
+
+#### 安全检查
+- [ ] SSL/TLS配置
+- [ ] HTTP安全头配置
+- [ ] XSS防护
+- [ ] CSRF防护
+- [ ] 敏感信息保护
+
+#### 监控配置
+- [ ] 错误日志配置
+- [ ] 访问日志配置
+- [ ] 性能监控配置
+- [ ] 告警配置
+- [ ] 备份策略
+
+#### 上线后检查
+- [ ] 功能可用性测试
+- [ ] API接口测试
+- [ ] 浏览器兼容性测试
+- [ ] 移动端适配测试
+- [ ] 性能指标测试
 
 ## 开发规范
 
@@ -201,4 +353,26 @@ VITE_PUBLIC_PATH=/
 2. 性能指标监控
 3. 错误日志监控
 4. 用户行为监控
-5. 告警通知配置 
+5. 告警通知配置
+
+### 4. 开发服务器配置
+
+前台项目 (`front/vite.config.ts`):
+```typescript
+export default defineConfig({
+  server: {
+    host: process.env.VITE_HOST,
+    port: parseInt(process.env.VITE_PORT || '5173'),
+    https: process.env.VITE_ENABLE_HTTPS === 'true',
+    proxy: {
+      '/api': {
+        target: process.env.VITE_API_BASE_URL,
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, '')
+      }
+    }
+  }
+})
+```
+
+后台项目 (`admin/vite.config.ts`) 配置类似。 

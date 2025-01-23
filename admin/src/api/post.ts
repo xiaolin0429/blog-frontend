@@ -1,5 +1,6 @@
 import type { PaginatedResponse, PostQuery, PageQuery } from '@/types/api'
 import type { PostResponse, Category, Tag, CreatePostRequest, UpdatePostRequest } from '@/types/post'
+import type { ApiResponse } from '@/types/api'
 import request from '@/utils/request'
 
 // 文章相关 API
@@ -32,12 +33,12 @@ export function deletePost(id: number): Promise<{ code: number, message: string 
 }
 
 // 分类相关 API
-export function getCategories(query: PageQuery): Promise<PaginatedResponse<Category>> {
-  return request.get<PaginatedResponse<Category>>('/categories/', { params: query })
+export function getCategories(query: PageQuery): Promise<ApiResponse<Category[]>> {
+  return request.get<ApiResponse<Category[]>>('/categories/', { params: query })
 }
 
-export function createCategory(data: { name: string, description?: string }): Promise<{ code: number, message: string, data: Category }> {
-  return request.post<{ code: number, message: string, data: Category }>('/post/categories/', data, {
+export function createCategory(data: { name: string, description?: string }): Promise<ApiResponse<Category>> {
+  return request.post<ApiResponse<Category>>('/categories/', data, {
     headers: {
       'Content-Type': 'application/json'
     }
