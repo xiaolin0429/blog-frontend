@@ -12,18 +12,26 @@
         v-loading="loading"
         :data="categories"
         style="width: 100%"
+        row-key="id"
+        :tree-props="{ children: 'children', hasChildren: 'hasChildren' }"
       >
         <el-table-column prop="id" label="ID" width="80" />
         <el-table-column prop="name" label="名称" />
         <el-table-column prop="description" label="描述" show-overflow-tooltip />
+        <el-table-column prop="parent_name" label="父分类" width="120">
+          <template #default="{ row }">
+            {{ row.parent_name || '-' }}
+          </template>
+        </el-table-column>
         <el-table-column prop="created_at" label="创建时间" width="180">
           <template #default="{ row }">
             {{ new Date(row.created_at).toLocaleString() }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="200" fixed="right">
+        <el-table-column label="操作" width="250" fixed="right">
           <template #default="{ row }">
             <el-button type="primary" link @click="handleEdit(row)">编辑</el-button>
+            <el-button type="success" link @click="handleAddChild(row)">添加子分类</el-button>
             <el-button type="danger" link @click="handleDelete(row)">删除</el-button>
           </template>
         </el-table-column>
@@ -45,7 +53,7 @@
     <!-- 编辑对话框 -->
     <el-dialog
       v-model="dialogVisible"
-      :title="dialogType === 'create' ? '新建分类' : '编辑分类'"
+      :title="getDialogTitle"
       width="500px"
     >
       <el-form
@@ -56,6 +64,22 @@
       >
         <el-form-item label="名称" prop="name">
           <el-input v-model="form.name" placeholder="请输入分类名称" />
+        </el-form-item>
+        <el-form-item label="父分类" prop="parent">
+          <el-select 
+            v-model="form.parent" 
+            placeholder="请选择父分类"
+            clearable
+            filterable
+          >
+            <el-option
+              v-for="item in categoryOptions"
+              :key="item.id"
+              :label="item.name"
+              :value="item.id"
+              :disabled="dialogType === 'edit' && item.id === currentEditId"
+            />
+          </el-select>
         </el-form-item>
         <el-form-item label="描述" prop="description">
           <el-input
@@ -79,7 +103,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { FormInstance } from 'element-plus'
 import { getCategories, createCategory } from '@/api/post'
@@ -94,12 +118,47 @@ const total = ref(0)
 
 // 对话框数据
 const dialogVisible = ref(false)
-const dialogType = ref<'create' | 'edit'>('create')
+const dialogType = ref<'create' | 'edit' | 'addChild'>('create')
 const submitting = ref(false)
 const formRef = ref<FormInstance>()
+const currentEditId = ref<number | null>(null)
+
 const form = ref({
   name: '',
-  description: ''
+  description: '',
+  parent: null as number | null
+})
+
+// 计算属性
+const getDialogTitle = computed(() => {
+  switch (dialogType.value) {
+    case 'create':
+      return '新建分类'
+    case 'edit':
+      return '编辑分类'
+    case 'addChild':
+      return '添加子分类'
+    default:
+      return '分类'
+  }
+})
+
+// 分类选项，过滤掉当前编辑的分类及其子分类
+const categoryOptions = computed(() => {
+  if (dialogType.value === 'edit' && currentEditId.value) {
+    return categories.value.filter(item => {
+      // 排除自身及其子分类
+      const isCurrentOrChild = (category: Category): boolean => {
+        if (category.id === currentEditId.value) return true
+        if (category.children) {
+          return category.children.some(isCurrentOrChild)
+        }
+        return false
+      }
+      return !isCurrentOrChild(item)
+    })
+  }
+  return categories.value
 })
 
 // 表单验证规则
@@ -114,16 +173,59 @@ const rules = {
 const loadCategories = async () => {
   try {
     loading.value = true
-    const res = await getCategories({
+    const response = await getCategories({
       page: currentPage.value,
       size: pageSize.value,
       ordering: '-created_at'
     })
-    categories.value = res.items
-    total.value = res.total
+    
+    // 检查响应数据
+    console.log('Categories response:', response)
+    
+    // 处理响应数据
+    if (response.code === 200 && Array.isArray(response.data)) {
+      // 构建分类树，只保留顶级分类和它们的子分类
+      const categoryMap = new Map<number, Category>()
+      const rootCategories: Category[] = []
+      
+      // 第一遍遍历：建立id到分类的映射
+      response.data.forEach(category => {
+        categoryMap.set(category.id, { ...category, children: [] })
+      })
+      
+      // 第二遍遍历：构建树形结构
+      response.data.forEach(category => {
+        const categoryWithChildren = categoryMap.get(category.id)
+        if (categoryWithChildren) {
+          if (category.parent) {
+            // 如果有父分类，将其添加到父分类的children中
+            const parent = categoryMap.get(category.parent)
+            if (parent) {
+              parent.children = parent.children || []
+              parent.children.push(categoryWithChildren)
+            }
+          } else {
+            // 如果没有父分类，则为顶级分类
+            rootCategories.push(categoryWithChildren)
+          }
+        }
+      })
+      
+      // 更新数据
+      categories.value = rootCategories
+      total.value = rootCategories.length
+      
+      // 检查处理后的数据结构
+      console.log('Processed categories:', rootCategories)
+    } else {
+      categories.value = []
+      total.value = 0
+    }
   } catch (error) {
     console.error('加载分类列表失败:', error)
     ElMessage.error('加载分类列表失败')
+    categories.value = []
+    total.value = 0
   } finally {
     loading.value = false
   }
@@ -132,9 +234,11 @@ const loadCategories = async () => {
 // 新建分类
 const handleCreate = () => {
   dialogType.value = 'create'
+  currentEditId.value = null
   form.value = {
     name: '',
-    description: ''
+    description: '',
+    parent: null
   }
   dialogVisible.value = true
 }
@@ -142,17 +246,36 @@ const handleCreate = () => {
 // 编辑分类
 const handleEdit = (row: Category) => {
   dialogType.value = 'edit'
+  currentEditId.value = row.id
   form.value = {
     name: row.name,
-    description: row.description || ''
+    description: row.description || '',
+    parent: row.parent || null
+  }
+  dialogVisible.value = true
+}
+
+// 添加子分类
+const handleAddChild = (row: Category) => {
+  dialogType.value = 'addChild'
+  currentEditId.value = null
+  form.value = {
+    name: '',
+    description: '',
+    parent: row.id
   }
   dialogVisible.value = true
 }
 
 // 删除分类
 const handleDelete = (row: Category) => {
+  const hasChildren = row.children && row.children.length > 0
+  const warningMessage = hasChildren 
+    ? '该分类包含子分类，删除后所有子分类也会被删除，确定要继续吗？'
+    : '确定要删除这个分类吗？删除后不可恢复。'
+
   ElMessageBox.confirm(
-    '确定要删除这个分类吗？删除后不可恢复。',
+    warningMessage,
     '警告',
     {
       confirmButtonText: '确定',
@@ -179,7 +302,7 @@ const handleSubmit = async () => {
     await formRef.value.validate()
     submitting.value = true
     
-    if (dialogType.value === 'create') {
+    if (dialogType.value === 'create' || dialogType.value === 'addChild') {
       const { code, message } = await createCategory(form.value)
       if (code === 200 || code === 201) {
         ElMessage.success('创建成功')

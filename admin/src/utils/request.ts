@@ -87,12 +87,25 @@ service.interceptors.response.use(
     const { code, message, data } = response.data
     
     // 处理业务错误
-    if (code !== 200) {
-      ElMessage.error(message)
-      return Promise.reject(new Error(message))
+    if (code && code !== 200 && code !== 201) {
+      // 处理包含详细错误信息的情况
+      let errorMessage = message
+      if (data?.errors) {
+        // 收集所有错误信息
+        const errors = Object.entries(data.errors)
+          .map(([field, msgs]) => Array.isArray(msgs) ? msgs[0] : msgs)
+          .filter(msg => msg)
+        if (errors.length > 0) {
+          errorMessage = errors.join('; ')
+        }
+      }
+      
+      ElMessage.error(errorMessage || '操作失败')
+      return Promise.reject(new Error(errorMessage || '操作失败'))
     }
     
-    return data
+    // 返回响应数据
+    return Promise.resolve(response.data as unknown) as Promise<AxiosResponse>
   },
   async (error) => {
     const { config, response } = error

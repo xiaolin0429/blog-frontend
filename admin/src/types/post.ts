@@ -69,7 +69,10 @@ export interface PostResponse {
 export interface Category {
   id: number
   name: string
-  description: string | null
+  description?: string
+  parent?: number | null
+  parent_name?: string
+  children?: Category[]
   created_at: string
   updated_at: string
 }
