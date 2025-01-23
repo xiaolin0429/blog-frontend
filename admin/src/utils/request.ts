@@ -87,7 +87,7 @@ service.interceptors.response.use(
     const { code, message, data } = response.data
     
     // 处理业务错误
-    if (code && code !== 200 && code !== 201) {
+    if (code && code !== 200 && code !== 201 && code !== 204) {
       // 处理包含详细错误信息的情况
       let errorMessage = message
       if (data?.errors) {
@@ -105,7 +105,7 @@ service.interceptors.response.use(
     }
     
     // 返回响应数据
-    return Promise.resolve(response.data as unknown) as Promise<AxiosResponse>
+    return response.data
   },
   async (error) => {
     const { config, response } = error

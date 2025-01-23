@@ -45,6 +45,18 @@ export function createCategory(data: { name: string, description?: string }): Pr
   })
 }
 
+export function updateCategory(id: number, data: { name: string, description?: string, parent?: number | null }): Promise<ApiResponse<Category>> {
+  return request.put<ApiResponse<Category>>(`/categories/${id}/`, data, {
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  })
+}
+
+export function deleteCategory(id: number): Promise<ApiResponse<null>> {
+  return request.delete<ApiResponse<null>>(`/categories/${id}/`)
+}
+
 // 快速创建分类
 export function quickCreateCategory(data: { name: string }): Promise<{ code: number, message: string, data: Category }> {
   console.log('调用快速创建分类 API:', data)
@@ -56,12 +68,34 @@ export function quickCreateCategory(data: { name: string }): Promise<{ code: num
 }
 
 // 标签相关 API
-export function getTags(query: PageQuery): Promise<PaginatedResponse<Tag>> {
-  return request.get<PaginatedResponse<Tag>>('/tags/', { params: query })
+export function getTags(query: PageQuery): Promise<ApiResponse<{
+  count: number
+  results: Tag[]
+}>> {
+  return request.get<ApiResponse<{
+    count: number
+    results: Tag[]
+  }>>('/tags/', { params: query })
 }
 
-export function createTag(data: { name: string }): Promise<{ code: number, message: string, data: Tag }> {
-  return request.post<{ code: number, message: string, data: Tag }>('/tags/', data)
+export function createTag(data: { name: string, description?: string }): Promise<ApiResponse<Tag>> {
+  return request.post<ApiResponse<Tag>>('/tags/', data, {
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  })
+}
+
+export function updateTag(id: number, data: { name: string, description?: string }): Promise<ApiResponse<Tag>> {
+  return request.put<ApiResponse<Tag>>(`/tags/${id}/`, data, {
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  })
+}
+
+export function deleteTag(id: number): Promise<ApiResponse<null>> {
+  return request.delete<ApiResponse<null>>(`/tags/${id}/`)
 }
 
 // 文章操作相关 API
@@ -92,4 +126,45 @@ export function getRelatedPosts(id: number): Promise<PostResponse[]> {
 
 export function unlikePost(id: number): Promise<null> {
   return request.post<null>(`/posts/${id}/unlike/`)
+}
+
+// 回收站相关 API
+export function getTrashPosts(query: PageQuery): Promise<ApiResponse<{
+  total: number
+  page: number
+  size: number
+  pages: number
+  items: PostResponse[]
+}>> {
+  return request.get<ApiResponse<{
+    total: number
+    page: number
+    size: number
+    pages: number
+    items: PostResponse[]
+  }>>('/api/v1/trash/posts', { params: query })
+}
+
+export function restorePost(id: number): Promise<ApiResponse<{
+  id: number
+  title: string
+  status: string
+}>> {
+  return request.post<ApiResponse<{
+    id: number
+    title: string
+    status: string
+  }>>(`/api/v1/trash/posts/${id}/restore`)
+}
+
+export function deleteTrashPost(id: number): Promise<ApiResponse<null>> {
+  return request.delete<ApiResponse<null>>(`/api/v1/trash/posts/${id}`)
+}
+
+export function clearTrash(): Promise<ApiResponse<{
+  deleted_count: number
+}>> {
+  return request.delete<ApiResponse<{
+    deleted_count: number
+  }>>('/api/v1/trash/posts/empty')
 } 

@@ -11,9 +11,22 @@ const REFRESH_TOKEN_EXPIRE_TIME = 7 * 24 * 60 * 60 * 1000 // 7天
  */
 const parseToken = (token: string) => {
   try {
-    return JSON.parse(atob(token.split('.')[1]))
+    console.log('Parsing token:', token) // 添加日志
+    if (!token || typeof token !== 'string') {
+      console.error('Invalid token type:', typeof token)
+      return null
+    }
+    const parts = token.split('.')
+    if (parts.length !== 3) {
+      console.error('Invalid token format: not a JWT token')
+      return null
+    }
+    const payload = parts[1]
+    const decoded = atob(payload.replace(/-/g, '+').replace(/_/g, '/'))
+    return JSON.parse(decoded)
   } catch (error) {
     console.error('Parse token failed:', error)
+    console.error('Token:', token)
     return null
   }
 }
@@ -26,37 +39,28 @@ export const validateToken = async () => {
   const refreshToken = getRefreshToken()
   
   if (!token && !refreshToken) {
+    console.log('No tokens found')
     return false
   }
 
   const userStore = useUserStore()
   
   try {
+    // 如果有 token，先尝试使用 token
     if (token) {
-      // 验证 token 是否过期
+      console.log('Validating access token')
       const tokenData = parseToken(token)
-      if (!tokenData) {
-        throw new Error('Invalid token format')
-      }
       
-      const expireTime = tokenData.exp * 1000
-      
-      if (Date.now() >= expireTime) {
-        // token 已过期，尝试使用 refresh token
+      // token 无效或已过期，尝试使用 refresh token
+      if (!tokenData || Date.now() >= tokenData.exp * 1000) {
+        console.log('Access token invalid or expired, trying refresh token')
         if (!refreshToken) {
-          throw new Error('No refresh token')
+          throw new Error('No refresh token available')
         }
         
-        // 验证 refresh token 是否过期
         const refreshTokenData = parseToken(refreshToken)
-        if (!refreshTokenData) {
-          throw new Error('Invalid refresh token format')
-        }
-        
-        const refreshExpireTime = refreshTokenData.exp * 1000
-        
-        if (Date.now() >= refreshExpireTime) {
-          throw new Error('Refresh token expired')
+        if (!refreshTokenData || Date.now() >= refreshTokenData.exp * 1000) {
+          throw new Error('Refresh token invalid or expired')
         }
         
         // 尝试刷新 token
@@ -66,16 +70,11 @@ export const validateToken = async () => {
         }
       }
     } else if (refreshToken) {
-      // 只有 refresh token，尝试刷新 token
+      // 只有 refresh token 的情况
+      console.log('Only refresh token available')
       const refreshTokenData = parseToken(refreshToken)
-      if (!refreshTokenData) {
-        throw new Error('Invalid refresh token format')
-      }
-      
-      const refreshExpireTime = refreshTokenData.exp * 1000
-      
-      if (Date.now() >= refreshExpireTime) {
-        throw new Error('Refresh token expired')
+      if (!refreshTokenData || Date.now() >= refreshTokenData.exp * 1000) {
+        throw new Error('Refresh token invalid or expired')
       }
       
       const success = await userStore.refreshToken()
@@ -86,6 +85,7 @@ export const validateToken = async () => {
     
     // 验证用户信息
     if (!userStore.userInfo) {
+      console.log('Fetching user info')
       const success = await userStore.getUserInfo()
       if (!success) {
         throw new Error('Get user info failed')

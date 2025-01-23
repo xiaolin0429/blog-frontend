@@ -20,7 +20,9 @@ export const useUserStore = defineStore('user', () => {
   // 登录
   const loginAction = async (username: string, password: string) => {
     try {
-      const { access, refresh, user } = await login({ username, password })
+      const response = await login({ username, password })
+      console.log('Login response:', response)
+      const { access, refresh, user } = response.data
       setToken(access)
       setRefreshToken(refresh)
       token.value = access
@@ -51,7 +53,8 @@ export const useUserStore = defineStore('user', () => {
       if (!currentRefreshToken) {
         throw new Error('No refresh token available')
       }
-      const { access } = await refreshTokenApi()
+      const response = await refreshTokenApi()
+      const { access } = response.data
       setToken(access)
       token.value = access
       return true
@@ -69,8 +72,8 @@ export const useUserStore = defineStore('user', () => {
       if (!currentToken) {
         throw new Error('No token available')
       }
-      const data = await getUserInfoApi()
-      userInfo.value = data
+      const response = await getUserInfoApi()
+      userInfo.value = response.data
       return true
     } catch (error) {
       console.error('Get user info failed:', error)
