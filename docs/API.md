@@ -17,7 +17,7 @@
 - 在请求头中添加：`Authorization: Bearer {access}`
 - Token有效期：
   - access token: 24小时
-  - refresh token: 7天
+  - refresh token: 7天时间
 
 ### 响应格式
 ```json
