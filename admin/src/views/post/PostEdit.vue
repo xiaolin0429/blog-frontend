@@ -9,21 +9,6 @@ import type { FormInstance, FormRules } from 'element-plus'
 import {
   ArrowLeft,
   Plus,
-  Edit,
-  DocumentCopy,
-  List,
-  Sort,
-  ChatLineSquare,
-  Minus,
-  Picture,
-  Link as LinkIcon,
-  Crop,
-  VideoCamera,
-  Operation,
-  Notebook,
-  DeleteFilled,
-  Grid,
-  ArrowDown,
   InfoFilled,
   Loading,
   Select
@@ -35,7 +20,6 @@ import { Editor, Toolbar } from '@wangeditor/editor-for-vue'
 import type { IDomEditor, IEditorConfig, IToolbarConfig } from '@wangeditor/editor'
 
 // Prism.js 语法高亮
-import * as Prism from 'prismjs'
 import 'prismjs/themes/prism-tomorrow.css'
 import 'prismjs/components/prism-core'
 import 'prismjs/components/prism-clike'
@@ -367,7 +351,7 @@ const handleSaveDraft = async () => {
         localStorage.removeItem(draftKey)
         localStorage.removeItem(historyKey)
         // 跳转到编辑页面
-        router.replace(`/posts/${data.id}/edit`)
+        await router.replace(`/posts/${data.id}/edit`)
       } else {
         ElMessage.error(message || '保存失败')
       }
@@ -401,7 +385,7 @@ const handlePublish = async () => {
       const { code, message } = await updatePost(Number(route.params.id), formData)
       if (code === 200 || code === 201) {
         ElMessage.success('发布成功')
-        router.push('/posts')
+        await router.push('/posts')
       } else {
         ElMessage.error(message || '发布失败')
       }
@@ -409,7 +393,7 @@ const handlePublish = async () => {
       const { code, message } = await createPost(formData)
       if (code === 200 || code === 201) {
         ElMessage.success('发布成功')
-        router.push('/posts')
+        await router.push('/posts')
       } else {
         ElMessage.error(message || '发布失败')
       }
@@ -558,7 +542,7 @@ const loadPost = async () => {
           }
           
           // 等待编辑器实例创建完成后再设置内容
-          nextTick(() => {
+          await nextTick(() => {
             if (editor.value) {
               const editorHtml = editor.value.getHtml()
               if (editorHtml !== mergedData.content) {
@@ -586,7 +570,7 @@ const loadPost = async () => {
           }
           
           // 等待编辑器实例创建完成后再设置内容
-          nextTick(() => {
+          await nextTick(() => {
             if (editor.value) {
               const editorHtml = editor.value.getHtml()
               if (editorHtml !== formData.content) {
@@ -602,7 +586,7 @@ const loadPost = async () => {
         originalForm.value = JSON.parse(JSON.stringify(formData))
       } else {
         ElMessage.error(message || '加载文章失败')
-        router.push('/posts')
+        await router.push('/posts')
       }
     } else {
       // 新建文章时，如果有本地草稿则恢复
@@ -624,7 +608,7 @@ const loadPost = async () => {
         }
         
         // 等待编辑器实例创建完成后再设置内容
-        nextTick(() => {
+        await nextTick(() => {
           if (editor.value) {
             const editorHtml = editor.value.getHtml()
             if (editorHtml !== mergedData.content) {
@@ -642,7 +626,7 @@ const loadPost = async () => {
   } catch (error) {
     console.error('加载文章失败:', error)
     ElMessage.error('加载文章失败')
-    router.push('/posts')
+    await router.push('/posts')
   } finally {
     loading.value = false
   }
