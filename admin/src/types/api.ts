@@ -60,10 +60,10 @@ export interface SelectOption {
 
 // 分页响应类型
 export interface PaginatedResponse<T> {
-  items: T[]
-  total: number
-  page: number
-  size: number
+  count: number
+  next: string | null
+  previous: string | null
+  results: T[]
 }
 
 // 分页查询参数
