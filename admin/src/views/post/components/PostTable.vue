@@ -64,13 +64,23 @@
       </template>
     </el-table-column>
     <el-table-column
-      prop="createdAt"
+      prop="created_at"
       label="创建时间"
       width="180"
       sortable="custom"
     >
       <template #default="{ row }">
-        {{ new Date(row.createdAt).toLocaleString() }}
+        {{ formatDate(row.created_at) }}
+      </template>
+    </el-table-column>
+    <el-table-column
+      prop="updated_at"
+      label="更新时间"
+      width="180"
+      sortable="custom"
+    >
+      <template #default="{ row }">
+        {{ formatDate(row.updated_at) }}
       </template>
     </el-table-column>
     <el-table-column label="操作" width="200" fixed="right">
@@ -106,6 +116,9 @@
 
 <script setup lang="ts">
 import { View, Star, ChatDotRound } from '@element-plus/icons-vue'
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import dayjs from 'dayjs'
 import type { PostResponse } from '@/types/post'
 
 defineProps<{
@@ -122,6 +135,12 @@ const emit = defineEmits<{
 
 const handleSelectionChange = (rows: PostResponse[]) => {
   emit('selection-change', rows)
+}
+
+// 格式化日期
+const formatDate = (date: string) => {
+  if (!date) return '-'
+  return dayjs(date).format('YYYY-MM-DD HH:mm:ss')
 }
 </script>
 
