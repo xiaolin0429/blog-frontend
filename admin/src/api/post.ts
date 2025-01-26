@@ -21,7 +21,7 @@ export function createPost(data: CreatePostRequest): Promise<{ code: number, mes
 }
 
 export function updatePost(id: number, data: UpdatePostRequest): Promise<{ code: number, message: string, data: PostResponse }> {
-  return request.put<{ code: number, message: string, data: PostResponse }>(`/posts/${id}/`, data, {
+  return request.put<{ code: number, message: string, data: PostResponse }>(`/posts/${id}/update/`, data, {
     headers: {
       'Content-Type': 'application/json'
     }

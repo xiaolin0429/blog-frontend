@@ -9,18 +9,18 @@
     >
       <el-form :model="categoryDialog.form">
         <el-form-item label="选择分类">
-          <el-select
+          <el-cascader
             v-model="categoryDialog.form.category"
+            :options="categoryOptions"
+            :props="{
+              expandTrigger: 'hover',
+              checkStrictly: true,
+              emitPath: false
+            }"
+            :show-all-levels="false"
             placeholder="选择分类"
             class="full-width"
-          >
-            <el-option
-              v-for="item in categories"
-              :key="item.id"
-              :label="item.name"
-              :value="item.id"
-            />
-          </el-select>
+          />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -66,36 +66,33 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { ElMessage } from 'element-plus'
-import type { Category, Tag } from '@/types/store'
+import type { Category, Tag } from '@/types/post'
+import type { CascaderOption } from 'element-plus'
 
 const props = defineProps<{
-  categories: {
-    id: number
-    name: string
-    description?: string
-    parent?: number | null
-    parent_name?: string
-    children?: any[]
-    order: number
-    created_at: string
-    updated_at: string
-  }[]
-  tags: {
-    id: number
-    name: string
-    description?: string
-    post_count: number
-    created_at: string
-    updated_at: string
-  }[]
+  categories: Category[]
+  tags: Tag[]
 }>()
 
 const emit = defineEmits<{
   (e: 'set-category', categoryId: number): void
   (e: 'set-tags', tagIds: number[]): void
 }>()
+
+// 将分类数据转换为 CascaderOption 类型
+const categoryOptions = computed<CascaderOption[]>(() => {
+  if (!props.categories) return []
+  
+  const convertToOption = (category: Category): CascaderOption => ({
+    value: category.id,
+    label: category.name,
+    children: category.children?.map(convertToOption)
+  })
+  
+  return props.categories.map(convertToOption)
+})
 
 // 批量设置分类对话框
 const categoryDialog = ref({

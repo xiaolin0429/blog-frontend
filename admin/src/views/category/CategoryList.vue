@@ -13,7 +13,7 @@
         :data="categories"
         style="width: 100%"
         row-key="id"
-        :tree-props="{ children: 'children', hasChildren: 'hasChildren' }"
+        :tree-props="{ children: 'children' }"
       >
         <el-table-column prop="id" label="ID" width="80" />
         <el-table-column prop="name" label="名称" />
@@ -108,6 +108,14 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import type { FormInstance } from 'element-plus'
 import { getCategories, createCategory, updateCategory, deleteCategory } from '@/api/post'
 import type { Category } from '@/types/post'
+import type { ApiResponse } from '@/types/api'
+
+interface CategoryListResponse {
+  count: number
+  results: Category[]
+  next?: string
+  previous?: string
+}
 
 // 表格数据
 const categories = ref<Category[]>([])
@@ -126,7 +134,7 @@ const currentEditId = ref<number | null>(null)
 const form = ref({
   name: '',
   description: '',
-  parent: null as number | null
+  parent: undefined as number | undefined
 })
 
 // 计算属性
@@ -173,7 +181,6 @@ const rules = {
 const loadCategories = async (resetPage = false) => {
   try {
     loading.value = true
-    // 如果需要重置分页，则重置参数
     if (resetPage) {
       currentPage.value = 1
       pageSize.value = 10
@@ -184,37 +191,16 @@ const loadCategories = async (resetPage = false) => {
       size: pageSize.value,
       ordering: '-created_at'
     })
-    
-    if (response.code === 200 && Array.isArray(response.data)) {
-      // 构建分类树
-      const categoryMap = new Map<number, Category>()
-      const rootCategories: Category[] = []
-      
-      // 第一遍遍历：建立id到分类的映射
-      response.data.forEach(category => {
-        categoryMap.set(category.id, { ...category, children: [] })
-      })
-      
-      // 第二遍遍历：构建树形结构
-      response.data.forEach(category => {
-        const categoryWithChildren = categoryMap.get(category.id)
-        if (categoryWithChildren) {
-          if (category.parent) {
-            // 如果有父分类，将其添加到父分类的children中
-            const parent = categoryMap.get(category.parent)
-            if (parent) {
-              parent.children = parent.children || []
-              parent.children.push(categoryWithChildren)
-            }
-          } else {
-            // 如果没有父分类，则为顶级分类
-            rootCategories.push(categoryWithChildren)
-          }
-        }
-      })
-      
-      categories.value = rootCategories
-      total.value = response.data.length // 使用实际的总数
+
+    if (response.code === 200) {
+      const data = response.data as CategoryListResponse | Category[]
+      if ('results' in data) {
+        categories.value = data.results
+        total.value = data.count
+      } else {
+        categories.value = data
+        total.value = data.length
+      }
     } else {
       categories.value = []
       total.value = 0
@@ -236,7 +222,7 @@ const handleCreate = () => {
   form.value = {
     name: '',
     description: '',
-    parent: null
+    parent: undefined
   }
   dialogVisible.value = true
 }
@@ -248,7 +234,7 @@ const handleEdit = (row: Category) => {
   form.value = {
     name: row.name,
     description: row.description || '',
-    parent: row.parent || null
+    parent: row.parent || undefined
   }
   dialogVisible.value = true
 }

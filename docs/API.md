@@ -17,7 +17,7 @@
 - 在请求头中添加：`Authorization: Bearer {access}`
 - Token有效期：
   - access token: 24小时
-  - refresh token: 7天时间
+  - refresh token: 7天
 
 ### 响应格式
 ```json
@@ -673,15 +673,23 @@
 ### 3. 分类管理
 
 #### 3.1 获取分类列表
-- **接口说明**: 获取所有分类列表，支持搜索和排序
+- **接口说明**: 获取所有分类列表，支持分页、排序和筛选。返回的分类列表按照order和id排序，子分类也遵循相同的排序规则。
 - **请求方式**: GET
 - **接口路径**: `/categories`
 - **请求参数**:
   - search: 搜索关键词（可选，搜索名称、描述）
-  - ordering: 排序字段（可选，默认order）
-    - 支持字段：order、id、name
-    - 降序在字段前加-，如-order
-- **响应数据**
+  - ordering: 排序字段（可选，支持order, name, created_at）
+  - parent: 父分类ID（可选，传null获取顶级分类，不传则获取所有分类）
+  - page: 页码（可选，默认1）
+  - size: 每页数量（可选，默认10，最大50）
+
+- **说明**:
+  1. 分类支持无限层级嵌套，每个分类都有一个level字段表示其在树中的层级（0表示顶级分类）
+  2. children字段包含当前分类的所有子分类，子分类同样可以包含其自己的children
+  3. 当不传parent参数时，API返回所有分类；当parent=null时，只返回顶级分类
+  4. 分类列表默认按order字段升序排序，order相同时按id升序排序
+
+- **响应数据**:
 ```json
 {
     "code": 200,          // 状态码（必返回）
@@ -694,18 +702,23 @@
                 "name": "string",     // 分类名称（必返回）
                 "description": "string", // 分类描述（可能为null）
                 "parent": number,     // 父分类ID（可能为null）
+                "parent_name": "string", // 父分类名称（可能为null）
+                "level": 0,           // 分类层级，0表示顶级分类
                 "order": number,      // 排序（必返回）
                 "post_count": number, // 文章数量（必返回）
-                "children": [        // 子分类（必返回）
+                "children": [        // 子分类列表，支持无限层级嵌套
                     {
                         "id": number,
                         "name": "string",
                         "description": "string",
-                        "parent": number,
+                        "level": 1,
                         "order": number,
-                        "post_count": number
+                        "post_count": number,
+                        "children": []  // 递归嵌套的子分类
                     }
-                ]
+                ],
+                "created_at": "string",
+                "updated_at": "string"
             }
         ]
     },
@@ -713,8 +726,6 @@
     "requestId": "string"  // 请求ID（必返回）
 }
 ```
-- **错误码**:
-  - 400: 请求参数错误
 
 #### 3.2 创建分类
 - **接口说明**: 创建新分类
@@ -729,7 +740,7 @@
     "name": "string",        // 分类名称（必填，长度2-50）
     "description": "string", // 分类描述（可选，最大长度200）
     "parent": number,        // 父分类ID（可选，必须是有效的分类ID）
-    "order": number         // 排序（可选，默认0）
+    "order": number         // 排序权重（可选，默认0，值越小排序越靠前）
 }
 ```
 - **响应数据**
@@ -742,8 +753,23 @@
         "name": "string",     // 分类名称（必返回）
         "description": "string", // 分类描述（可能为null）
         "parent": number,     // 父分类ID（可能为null）
+        "parent_name": "string", // 父分类名称（可能为null）
+        "level": 0,           // 分类层级，0表示顶级分类
         "order": number,      // 排序（必返回）
-        "created_at": "string" // 创建时间（必返回）
+        "post_count": number, // 文章数量（必返回）
+        "children": [        // 子分类列表，支持无限层级嵌套
+            {
+                "id": number,
+                "name": "string",
+                "description": "string",
+                "level": 1,
+                "order": number,
+                "post_count": number,
+                "children": []  // 递归嵌套的子分类
+            }
+        ],
+        "created_at": "string",
+        "updated_at": "string"
     },
     "timestamp": "string", // 时间戳（必返回）
     "requestId": "string"  // 请求ID（必返回）
@@ -771,7 +797,7 @@
     "name": "string",        // 分类名称（必填，长度2-50）
     "description": "string", // 分类描述（可选，最大长度200）
     "parent": number,        // 父分类ID（可选，必须是有效的分类ID）
-    "order": number         // 排序（可选）
+    "order": number         // 排序权重（可选，默认0，值越小排序越靠前）
 }
 ```
 - **响应数据**
@@ -784,7 +810,21 @@
         "name": "string",     // 分类名称（必返回）
         "description": "string", // 分类描述（可能为null）
         "parent": number,     // 父分类ID（可能为null）
+        "parent_name": "string", // 父分类名称（可能为null）
+        "level": 0,           // 分类层级，0表示顶级分类
         "order": number,      // 排序（必返回）
+        "post_count": number, // 文章数量（必返回）
+        "children": [        // 子分类列表，支持无限层级嵌套
+            {
+                "id": number,
+                "name": "string",
+                "description": "string",
+                "level": 1,
+                "order": number,
+                "post_count": number,
+                "children": []  // 递归嵌套的子分类
+            }
+        ],
         "updated_at": "string" // 更新时间（必返回）
     },
     "timestamp": "string", // 时间戳（必返回）

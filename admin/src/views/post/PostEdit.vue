@@ -11,7 +11,8 @@ import {
   Plus,
   InfoFilled,
   Loading,
-  Select
+  Select,
+  ArrowRight
 } from '@element-plus/icons-vue'
 
 // WangEditor 相关
@@ -143,7 +144,7 @@ const settingsFormRef = ref<FormInstance>()
 const postForm = ref<CreatePostRequest>({
   title: '',
   content: '',
-  category: '',
+  category: 0,
   tags: [],
   excerpt: '',
   pinned: false,
@@ -229,17 +230,9 @@ const nextSaveTimeText = computed(() => {
 
 // 编辑器内容变化时的处理函数
 const handleEditorChange = (editor: IDomEditor) => {
-  if (!editor) {
-    return
-  }
-  
-  try {
-    const html = editor.getHtml()
-    postForm.value.content = html
-    triggerAutoSave()
-  } catch (error) {
-    console.error('编辑器内容更新失败:', error)
-  }
+  if (!editor) return
+  postForm.value.content = editor.getHtml()
+  triggerAutoSave()
 }
 
 // 标题输入处理
@@ -269,42 +262,20 @@ const handleSaveDraft = async () => {
   try {
     loading.value = true
     
-    const formData: Partial<CreatePostRequest> = {
+    const formData: CreatePostRequest = {
       title: postForm.value.title || '无标题',
       content: postForm.value.content || '',
+      category: postForm.value.category || '',
+      tags: postForm.value.tags || [],
       status: 'draft',
+      excerpt: postForm.value.excerpt || '',
       pinned: postForm.value.pinned,
       allowComment: postForm.value.allowComment,
-      publishTime: postForm.value.publishTime
-    }
-
-    // 只有在有值时才添加可选字段
-    if (postForm.value.excerpt) {
-      formData.excerpt = postForm.value.excerpt
-    }
-    
-    if (postForm.value.category && postForm.value.category !== 0) {
-      formData.category = Number(postForm.value.category)
-    }
-    
-    if (postForm.value.tags && postForm.value.tags.length > 0) {
-      formData.tags = postForm.value.tags
-    }
-    
-    if (postForm.value.password) {
-      formData.password = postForm.value.password
-    }
-    
-    if (postForm.value.cover) {
-      formData.cover = postForm.value.cover
-    }
-    
-    if (postForm.value.meta_description) {
-      formData.meta_description = postForm.value.meta_description
-    }
-    
-    if (postForm.value.meta_keywords) {
-      formData.meta_keywords = postForm.value.meta_keywords
+      publishTime: postForm.value.publishTime,
+      password: postForm.value.password || '',
+      cover: postForm.value.cover || '',
+      meta_description: postForm.value.meta_description || '',
+      meta_keywords: postForm.value.meta_keywords || ''
     }
     
     // 根据是否有 ID 来判断是新建还是更新
@@ -317,31 +288,20 @@ const handleSaveDraft = async () => {
         ElMessage.success('草稿保存成功')
         // 更新原始表单数据，避免重复提示保存
         originalForm.value = { ...postForm.value }
-        // 清理本地存储的自动保存内容
+        // 清理本地存储的自动保存内容，并标记为已保存
         const draftKey = `draft_${postId}`
         const historyKey = `history_${postId}`
-        localStorage.removeItem(draftKey)
+        localStorage.setItem(draftKey, JSON.stringify({
+          content: formData,
+          timestamp: new Date().toISOString(),
+          saved: true
+        }))
         localStorage.removeItem(historyKey)
       } else {
         ElMessage.error(message || '保存失败')
       }
     } else {
       // 创建新文章
-      const formData: CreatePostRequest = {
-        title: postForm.value.title,
-        content: postForm.value.content,
-        category: postForm.value.category || '',
-        tags: postForm.value.tags || [],
-        status: postForm.value.status || 'draft',
-        excerpt: postForm.value.excerpt,
-        pinned: postForm.value.pinned,
-        allowComment: postForm.value.allowComment,
-        publishTime: postForm.value.publishTime,
-        password: postForm.value.password || '',
-        cover: postForm.value.cover,
-        meta_description: postForm.value.meta_description,
-        meta_keywords: postForm.value.meta_keywords
-      }
       const { code, message, data } = await createPost(formData)
       if (code === 200 || code === 201) {
         ElMessage.success('草稿保存成功')
@@ -510,7 +470,7 @@ const loadPost = async () => {
         const formData = {
           title: data.title,
           content: data.content,
-          category: data.category?.id || 0,
+          category: data.category?.id || '',
           tags: data.tags?.map(t => t.id.toString()) || [],
           excerpt: data.excerpt || '',
           pinned: data.pinned || false,
@@ -535,52 +495,16 @@ const loadPost = async () => {
             tags: localContent.tags || formData.tags
           }
           
-          // 先设置除内容外的其他字段
-          postForm.value = {
-            ...mergedData,
-            content: '' // 临时设置为空，等编辑器初始化后再设置
-          }
-          
-          // 等待编辑器实例创建完成后再设置内容
-          await nextTick(() => {
-            if (editor.value) {
-              const editorHtml = editor.value.getHtml()
-              if (editorHtml !== mergedData.content) {
-                const newHtml = mergedData.content || ''
-                // @ts-ignore
-                editor.value.setHtml(newHtml)
-                postForm.value.content = newHtml
-              }
-            }
-          })
-          
+          postForm.value = mergedData
           ElMessage.info('已恢复本地未保存的内容，可以通过历史记录查看或恢复服务器版本')
           
-          // 将服务器版本添加到历史记录
           saveHistory.value.unshift({
             time: data.updated_at,
             content: data.content,
             title: data.title
           })
         } else {
-          // 先设置除内容外的其他字段
-          postForm.value = {
-            ...formData,
-            content: '' // 临时设置为空，等编辑器初始化后再设置
-          }
-          
-          // 等待编辑器实例创建完成后再设置内容
-          await nextTick(() => {
-            if (editor.value) {
-              const editorHtml = editor.value.getHtml()
-              if (editorHtml !== formData.content) {
-                const newHtml = formData.content || ''
-                // @ts-ignore
-                editor.value.setHtml(newHtml)
-                postForm.value.content = newHtml
-              }
-            }
-          })
+          postForm.value = formData
         }
         
         originalForm.value = JSON.parse(JSON.stringify(formData))
@@ -589,38 +513,20 @@ const loadPost = async () => {
         await router.push('/posts')
       }
     } else {
-      // 新建文章时，如果有本地草稿则恢复
-      if (localDraft) {
+      // 新建文章时，只有在有未保存的本地草稿时才恢复
+      if (localDraft && !localDraft.saved) {
         const localContent = localDraft.content
         const mergedData = {
           ...postForm.value,
           title: localContent.title || '',
           content: localContent.content || '',
           excerpt: localContent.excerpt || '',
-          category: localContent.category || 0,
+          category: localContent.category || '',
           tags: localContent.tags || []
         }
         
-        // 先设置除内容外的其他字段
-        postForm.value = {
-          ...mergedData,
-          content: '' // 临时设置为空，等编辑器初始化后再设置
-        }
-        
-        // 等待编辑器实例创建完成后再设置内容
-        await nextTick(() => {
-          if (editor.value) {
-            const editorHtml = editor.value.getHtml()
-            if (editorHtml !== mergedData.content) {
-              const newHtml = mergedData.content || ''
-              // @ts-ignore
-              editor.value.setHtml(newHtml)
-              postForm.value.content = newHtml
-            }
-          }
-        })
-        
-        ElMessage.info('已恢复本地未保存的内容')
+        postForm.value = mergedData
+        ElMessage.info('已恢复未保存的草稿内容')
       }
     }
   } catch (error) {
@@ -632,13 +538,28 @@ const loadPost = async () => {
   }
 }
 
+// 在 setup 中添加
+const categoryStates = ref(new Map())
+
 // 加载分类列表
 const loadCategories = async () => {
   try {
     const response = await getCategories({ page: 1, size: 100, ordering: 'name' })
     if (response.code === 200) {
-      // 只保留根节点及其子树
-      categories.value = response.data.filter(item => item.parent === null)
+      categories.value = response.data
+      // 初始化每个分类的显示状态
+      categories.value.forEach(category => {
+        categoryStates.value.set(category.id, {
+          showChildren: false
+        })
+        if (category.children) {
+          category.children.forEach(child => {
+            categoryStates.value.set(child.id, {
+              showChildren: false
+            })
+          })
+        }
+      })
     }
   } catch (error) {
     console.error('加载分类列表失败:', error)
@@ -672,12 +593,12 @@ const handleCategoryCreate = async (categoryName: string) => {
       ElMessage.success('创建分类成功')
     } else {
       ElMessage.error(message || '创建分类失败')
-      postForm.value.category = 0
+      postForm.value.category = ''
     }
   } catch (error) {
     console.error('创建分类失败:', error)
     ElMessage.error('创建分类失败')
-    postForm.value.category = 0
+    postForm.value.category = ''
   } finally {
     loading.value = false
   }
@@ -704,22 +625,7 @@ const handleRouteChange = (path: string) => {
 
 // 编辑器创建完成的处理函数
 const handleCreated = (editorInstance: IDomEditor) => {
-  // 保存编辑器实例
   editor.value = editorInstance
-  
-  // 创建一个隐藏的 textarea 元素
-  const textarea = document.createElement('textarea')
-  textarea.style.display = 'none'
-  
-  // 等待 DOM 更新后再添加 textarea
-  setTimeout(() => {
-    const container = document.querySelector('.w-e-text-container')
-    if (container) {
-      container.appendChild(textarea)
-    }
-  }, 0)
-
-  // 启动自动保存
   startAutoSave()
 }
 
@@ -865,10 +771,11 @@ const saveContent = async () => {
       tags: postForm.value.tags
     }
     
-    // 保存当前内容
+    // 保存当前内容，添加 saved 标记为 false，表示这是未保存的草稿
     localStorage.setItem(draftKey, JSON.stringify({
       content: contentToSave,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      saved: false
     }))
     
     // 添加到历史记录
@@ -909,21 +816,44 @@ const saveContent = async () => {
   }
 }
 
-// 在 script setup 部分添加以下方法
-const handleCreateCategory = () => {
-  ElMessageBox.prompt('请输入分类名称', '新建分类', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
-    inputValidator: (value) => {
-      if (!value) {
-        return '分类名称不能为空'
+// 格式化分类数据为树形结构
+const formatCategories = computed(() => {
+  if (!categories.value) return []
+  
+  // 只返回顶级分类（parent 为 null 的分类）及其子分类
+  return categories.value
+    .filter(category => category.parent === null)
+    .map(category => {
+      const node = {
+        value: category.id,
+        label: category.name,
+        children: undefined as any[] | undefined,
+        showChildren: false
       }
-      return true
-    }
-  }).then(({ value }) => {
-    handleCategoryCreate(value)
-  }).catch(() => {})
-}
+      
+      if (category.children && category.children.length > 0) {
+        node.children = category.children.map(child => {
+          const childNode = {
+            value: child.id,
+            label: child.name,
+            children: undefined as any[] | undefined,
+            showChildren: false
+          }
+          
+          if (child.children && child.children.length > 0) {
+            childNode.children = child.children.map(grandChild => ({
+              value: grandChild.id,
+              label: grandChild.name
+            }))
+          }
+          
+          return childNode
+        })
+      }
+      
+      return node
+    })
+})
 </script>
 
 <template>
@@ -1043,31 +973,71 @@ const handleCreateCategory = () => {
           label-position="top"
         >
           <el-form-item label="分类" prop="category">
-            <el-tree-select
+            <el-select
               v-model="postForm.category"
-              placeholder="选择或创建分类"
-              :data="categories"
-              :props="{
-                value: 'id',
-                label: 'name',
-                children: 'children'
-              }"
+              placeholder="选择分类"
               :disabled="loading"
               filterable
-              clearable
-              check-strictly
               class="w-full"
-            />
-            <div class="mt-2">
-              <el-button
-                link
-                type="primary"
-                size="small"
-                @click="handleCreateCategory"
-              >
-                <el-icon><Plus /></el-icon>新建分类
-              </el-button>
-            </div>
+              value-key="id"
+            >
+              <template v-for="category in categories" :key="category.id">
+                <!-- 顶级分类 -->
+                <el-option
+                  :value="category.id"
+                  :label="category.name"
+                  class="parent-category"
+                >
+                  <div class="category-item">
+                    <el-icon 
+                      v-if="category.children?.length"
+                      class="expand-icon"
+                      @click.stop="categoryStates.get(category.id).showChildren = !categoryStates.get(category.id).showChildren"
+                    >
+                      <ArrowRight :class="{ 'is-expand': categoryStates.get(category.id)?.showChildren }" />
+                    </el-icon>
+                    <span>{{ category.name }}</span>
+                  </div>
+                </el-option>
+                <!-- 子分类 -->
+                <template v-if="categoryStates.get(category.id)?.showChildren && category.children?.length">
+                  <el-option
+                    v-for="child in category.children"
+                    :key="child.id"
+                    :value="child.id"
+                    :label="child.name"
+                    class="child-category"
+                  >
+                    <div class="category-item">
+                      <el-icon 
+                        v-if="child.children?.length"
+                        class="expand-icon"
+                        @click.stop="categoryStates.get(child.id).showChildren = !categoryStates.get(child.id).showChildren"
+                      >
+                        <ArrowRight :class="{ 'is-expand': categoryStates.get(child.id)?.showChildren }" />
+                      </el-icon>
+                      <span>{{ child.name }}</span>
+                    </div>
+                  </el-option>
+                  <!-- 孙分类 -->
+                  <template v-for="child in category.children" :key="child.id">
+                    <template v-if="categoryStates.get(child.id)?.showChildren && child.children?.length">
+                      <el-option
+                        v-for="grandChild in child.children"
+                        :key="grandChild.id"
+                        :value="grandChild.id"
+                        :label="grandChild.name"
+                        class="grandchild-category"
+                      >
+                        <div class="category-item category-item--third">
+                          <span>{{ grandChild.name }}</span>
+                        </div>
+                      </el-option>
+                    </template>
+                  </template>
+                </template>
+              </template>
+            </el-select>
           </el-form-item>
 
           <el-form-item label="标签">

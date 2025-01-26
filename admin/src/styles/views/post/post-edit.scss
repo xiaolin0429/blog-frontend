@@ -716,4 +716,45 @@ pre {
   to {
     transform: rotate(360deg);
   }
+}
+
+// 分类选择器样式
+.category-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  
+  .el-icon {
+    font-size: 12px;
+    color: var(--el-text-color-secondary);
+    
+    &.expand-icon {
+      cursor: pointer;
+      transition: transform 0.3s;
+      
+      &:hover {
+        color: var(--el-color-primary);
+      }
+      
+      .is-expand {
+        transform: rotate(90deg);
+      }
+    }
+  }
+}
+
+.child-category .category-item {
+  padding-left: 20px;
+}
+
+.grandchild-category .category-item {
+  padding-left: 40px;
+}
+
+.parent-category,
+.child-category,
+.grandchild-category {
+  &:hover {
+    background-color: var(--el-color-primary-light-9);
+  }
 } 
