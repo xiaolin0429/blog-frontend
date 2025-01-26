@@ -68,7 +68,7 @@
       
       <el-form-item label="标签">
         <el-select
-          v-model="modelValue.tag"
+          v-model="modelValue.tags"
           placeholder="选择标签"
           clearable
           class="w-52"
@@ -113,8 +113,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
 import { ArrowRight } from '@element-plus/icons-vue'
-import type { PostQuery } from '@/types/api'
-import type { Category, Tag } from '@/types/post'
+import type { PostQuery, Category, Tag } from '@/types/post'
 import type { CascaderOption } from 'element-plus'
 
 const props = defineProps<{
@@ -188,14 +187,14 @@ const handleDateChange = (val: string[] | null) => {
   if (val && val.length === 2) {
     emit('update:modelValue', {
       ...props.modelValue,
-      startDate: val[0],
-      endDate: val[1]
+      date_start: val[0],
+      date_end: val[1]
     })
   } else {
     emit('update:modelValue', {
       ...props.modelValue,
-      startDate: undefined,
-      endDate: undefined
+      date_start: undefined,
+      date_end: undefined
     })
   }
 }

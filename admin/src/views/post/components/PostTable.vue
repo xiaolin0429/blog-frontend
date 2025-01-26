@@ -119,21 +119,21 @@ import { View, Star, ChatDotRound } from '@element-plus/icons-vue'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import dayjs from 'dayjs'
-import type { PostResponse } from '@/types/post'
+import type { PostListItem } from '@/types/post'
 
 defineProps<{
   loading: boolean
-  posts: PostResponse[]
+  posts: PostListItem[]
 }>()
 
 const emit = defineEmits<{
-  'selection-change': [rows: PostResponse[]],
-  'edit': [row: PostResponse],
-  'preview': [row: PostResponse],
-  'delete': [row: PostResponse]
+  'selection-change': [rows: PostListItem[]],
+  'edit': [row: PostListItem],
+  'preview': [row: PostListItem],
+  'delete': [row: PostListItem]
 }>()
 
-const handleSelectionChange = (rows: PostResponse[]) => {
+const handleSelectionChange = (rows: PostListItem[]) => {
   emit('selection-change', rows)
 }
 

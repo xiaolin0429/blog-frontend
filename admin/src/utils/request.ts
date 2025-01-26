@@ -1,82 +1,32 @@
 import axios from 'axios'
 import type { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
-import { ElMessage } from 'element-plus'
 import type { ApiResponse } from '@/types/api'
-import { getToken, getRefreshToken, setToken, clearTokens } from './auth/token'
+import { ElMessage } from 'element-plus'
 import router from '@/router'
+import { refreshToken } from '@/api/auth'
 
-// 基础配置
-const BASE_URL = import.meta.env.VITE_API_BASE_URL
-const API_PREFIX = '/api/v1'
-
-// 创建 axios 实例
-const service = axios.create({
-  baseURL: BASE_URL,
-  timeout: 10000,
-  headers: {
-    'Content-Type': 'application/json'
-  }
-}) as AxiosInstance
+// 创建axios实例
+const service: AxiosInstance = axios.create({
+  baseURL: import.meta.env.VITE_API_BASE_URL || '/api/v1',
+  timeout: 15000
+})
 
 // 是否正在刷新token
 let isRefreshing = false
 // 重试队列
 let retryQueue: ((token: string) => void)[] = []
 
-// 刷新token
-const refreshToken = async () => {
-  try {
-    const refresh = getRefreshToken()
-    if (!refresh) {
-      throw new Error('No refresh token')
-    }
-    
-    // 使用新的 axios 实例发送请求，避免被拦截器处理
-    const refreshService = axios.create({
-      baseURL: BASE_URL,
-      timeout: 10000,
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    })
-    
-    const { data } = await refreshService.post<ApiResponse<{ access: string }>>(
-      `${API_PREFIX}/auth/refresh/`,
-      { refresh }
-    )
-    
-    const { access } = data.data
-    setToken(access)
-    return access
-  } catch (error) {
-    clearTokens()
-    router.push('/login')
-    throw error
-  }
-}
-
 // 请求拦截器
 service.interceptors.request.use(
   (config) => {
-    // 添加 API 前缀
-    if (config.url && !config.url.startsWith(API_PREFIX)) {
-      config.url = `${API_PREFIX}${config.url}`
-    }
-    
-    // 确保URL以斜杠结尾
-    if (config.url && !config.url.endsWith('/')) {
-      config.url = `${config.url}/`
-    }
-    
-    // 从 localStorage 获取 token
-    const token = getToken()
+    // 从localStorage获取token
+    const token = localStorage.getItem('access_token')
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
     return config
   },
   (error) => {
-    console.error('Request error:', error)
     return Promise.reject(error)
   }
 )
@@ -104,8 +54,7 @@ service.interceptors.response.use(
       return Promise.reject(new Error(errorMessage || '操作失败'))
     }
     
-    // 返回响应数据
-    return response.data
+    return response
   },
   async (error) => {
     const { config, response } = error
@@ -116,7 +65,14 @@ service.interceptors.response.use(
         isRefreshing = true
         try {
           // 尝试刷新token
-          const newToken = await refreshToken()
+          const refresh = localStorage.getItem('refresh_token')
+          if (!refresh) {
+            throw new Error('No refresh token')
+          }
+          const response = await refreshToken({ refresh })
+          const newToken = response.data.data.access
+          // 更新token
+          localStorage.setItem('access_token', newToken)
           // 重试队列中的请求
           retryQueue.forEach(cb => cb(newToken))
           retryQueue = []
@@ -125,6 +81,10 @@ service.interceptors.response.use(
           return service(config)
         } catch (err) {
           console.error('Token refresh failed:', err)
+          // 刷新失败，清除token并跳转到登录页
+          localStorage.removeItem('access_token')
+          localStorage.removeItem('refresh_token')
+          router.push('/login')
           return Promise.reject(error)
         } finally {
           isRefreshing = false
@@ -161,20 +121,4 @@ service.interceptors.response.use(
   }
 )
 
-// 请求实例类型定义
-interface RequestInstance {
-  get<T = any>(url: string, config?: AxiosRequestConfig): Promise<T>
-  post<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T>
-  put<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T>
-  delete<T = any>(url: string, config?: AxiosRequestConfig): Promise<T>
-}
-
-// 请求实例
-const request: RequestInstance = {
-  get: (url, config) => service.get(url, config),
-  post: (url, data, config) => service.post(url, data, config),
-  put: (url, data, config) => service.put(url, data, config),
-  delete: (url, config) => service.delete(url, config)
-}
-
-export default request 
+export default service 

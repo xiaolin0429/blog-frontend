@@ -51,13 +51,12 @@ import {
   getPost,
   createPost,
   updatePost,
-  getCategories,
-  getTags,
-  uploadImage,
-  quickCreateCategory,
-  createTag,
-  autoSavePost
+  autoSavePost,
+  getAutoSavePost,
+  uploadImage
 } from '@/api/post'
+import { getCategories, quickCreateCategory } from '@/api/category'
+import { getTags, createTag } from '@/api/tag'
 import type { CreatePostRequest, Category, Tag, PostStatus } from '@/types/post'
 
 const route = useRoute()
@@ -144,8 +143,8 @@ const settingsFormRef = ref<FormInstance>()
 const postForm = ref<CreatePostRequest>({
   title: '',
   content: '',
-  category: 0,
-  tags: [],
+  category_id: 0,
+  tag_ids: [],
   excerpt: '',
   pinned: false,
   allowComment: true,
@@ -163,13 +162,13 @@ const rules: FormRules = {
     { required: true, message: '请输入文章标题', trigger: 'blur' },
     { min: 2, max: 100, message: '标题长度在 2 到 100 个字符', trigger: 'blur' }
   ],
-  category: [
+  category_id: [
     { required: true, message: '请选择文章分类', trigger: 'change' }
   ],
   content: [
     { required: true, message: '请输入文章内容', trigger: 'blur' }
   ],
-  tags: [
+  tag_ids: [
     { type: 'array', message: '标签必须是数组类型', trigger: 'change' }
   ]
 }
@@ -196,8 +195,8 @@ const isFormModified = computed(() => {
 const originalForm = ref<CreatePostRequest>({
   title: '',
   content: '',
-  category: 0,
-  tags: [],
+  category_id: 0,
+  tag_ids: [],
   excerpt: '',
   pinned: false,
   allowComment: true,
@@ -265,8 +264,8 @@ const handleSaveDraft = async () => {
     const formData: CreatePostRequest = {
       title: postForm.value.title || '无标题',
       content: postForm.value.content || '',
-      category: postForm.value.category || '',
-      tags: postForm.value.tags || [],
+      category_id: postForm.value.category_id || 0,
+      tag_ids: postForm.value.tag_ids?.length ? postForm.value.tag_ids : [],
       status: 'draft',
       excerpt: postForm.value.excerpt || '',
       pinned: postForm.value.pinned,
@@ -283,8 +282,8 @@ const handleSaveDraft = async () => {
     
     if (postId) {
       // 更新已有文章
-      const { code, message } = await updatePost(postId, formData)
-      if (code === 200 || code === 201) {
+      const response = await updatePost(postId, formData)
+      if (response.data.code === 200 || response.data.code === 201) {
         ElMessage.success('草稿保存成功')
         // 更新原始表单数据，避免重复提示保存
         originalForm.value = { ...postForm.value }
@@ -298,12 +297,12 @@ const handleSaveDraft = async () => {
         }))
         localStorage.removeItem(historyKey)
       } else {
-        ElMessage.error(message || '保存失败')
+        ElMessage.error(response.data.message || '保存失败')
       }
     } else {
       // 创建新文章
-      const { code, message, data } = await createPost(formData)
-      if (code === 200 || code === 201) {
+      const response = await createPost(formData)
+      if (response.data.code === 200 || response.data.code === 201) {
         ElMessage.success('草稿保存成功')
         // 清理本地存储的自动保存内容
         const draftKey = 'draft_new'
@@ -311,9 +310,9 @@ const handleSaveDraft = async () => {
         localStorage.removeItem(draftKey)
         localStorage.removeItem(historyKey)
         // 跳转到编辑页面
-        await router.replace(`/posts/${data.id}/edit`)
+        await router.replace(`/posts/${response.data.data.id}/edit`)
       } else {
-        ElMessage.error(message || '保存失败')
+        ElMessage.error(response.data.message || '保存失败')
       }
     }
   } catch (error: any) {
@@ -336,26 +335,26 @@ const handlePublish = async () => {
       title: postForm.value.title,
       content: postForm.value.content,
       excerpt: postForm.value.excerpt || undefined,
-      category: Number(postForm.value.category) || 0,
-      tags: postForm.value.tags.length > 0 ? postForm.value.tags : [],
+      category_id: Number(postForm.value.category_id) || 0,
+      tag_ids: postForm.value.tag_ids?.length ? postForm.value.tag_ids : undefined,
       status: 'published' as PostStatus
     }
     
     if (isEdit) {
-      const { code, message } = await updatePost(Number(route.params.id), formData)
-      if (code === 200 || code === 201) {
+      const response = await updatePost(Number(route.params.id), formData)
+      if (response.data.code === 200 || response.data.code === 201) {
         ElMessage.success('发布成功')
         await router.push('/posts')
       } else {
-        ElMessage.error(message || '发布失败')
+        ElMessage.error(response.data.message || '发布失败')
       }
     } else {
-      const { code, message } = await createPost(formData)
-      if (code === 200 || code === 201) {
+      const response = await createPost(formData)
+      if (response.data.code === 200 || response.data.code === 201) {
         ElMessage.success('发布成功')
         await router.push('/posts')
       } else {
-        ElMessage.error(message || '发布失败')
+        ElMessage.error(response.data.message || '发布失败')
       }
     }
   } catch (error) {
@@ -371,14 +370,18 @@ const handlePublish = async () => {
 const handleTagCreate = async (tagName: string) => {
   try {
     loading.value = true
-    const { code, message, data } = await createTag({ name: tagName })
+    const response = await createTag({ name: tagName })
     
-    if (code === 200) {
-      tags.value.push(data)
-      postForm.value.tags.push(data.id.toString())
+    if (response.data.code === 200) {
+      tags.value.push(response.data.data)
+      if (postForm.value.tag_ids) {
+        postForm.value.tag_ids.push(Number(response.data.data.id))
+      } else {
+        postForm.value.tag_ids = [Number(response.data.data.id)]
+      }
       ElMessage.success('创建标签成功')
     } else {
-      ElMessage.error(message || '创建标签失败')
+      ElMessage.error(response.data.message || '创建标签失败')
     }
   } catch (error) {
     console.error('创建标签失败:', error)
@@ -401,13 +404,13 @@ const handleUploadCover = async (options: any) => {
       showClose: true
     })
 
-    const { code, message, data: url } = await uploadImage(formData)
+    const response = await uploadImage(formData)
     
-    if (code === 200) {
-      postForm.value.cover = url
+    if (response.data.code === 200) {
+      postForm.value.cover = response.data.data
       ElMessage.success('封面上传成功')
     } else {
-      ElMessage.error(message || '上传封面失败')
+      ElMessage.error(response.data.message || '上传封面失败')
     }
   } catch (error) {
     console.error('上传封面失败:', error)
@@ -465,41 +468,42 @@ const loadPost = async () => {
     }
     
     if (isEdit) {
-      const { code, message, data } = await getPost(Number(route.params.id))
-      if (code === 200) {
+      const response = await getPost(Number(route.params.id))
+      if (response.data.code === 200) {
+        const data = response.data.data
         const formData = {
           title: data.title,
           content: data.content,
-          category: data.category?.id || '',
-          tags: data.tags?.map(t => t.id.toString()) || [],
+          category_id: data.category_id || 0,
+          tag_ids: data.tag_ids?.map(Number) || [],
           excerpt: data.excerpt || '',
-          pinned: data.pinned || false,
-          allowComment: data.allow_comment ?? true,
-          publishTime: data.published_at || new Date().toISOString(),
-          password: data.password || '',
+          pinned: data.is_pinned || false,
+          allowComment: data.is_allow_comment ?? true,
+          publishTime: data.publish_time || new Date().toISOString(),
+          password: data.access_password || '',
           status: data.status || 'draft',
-          cover: data.cover || '',
+          cover: data.cover_image || '',
           meta_description: data.meta_description || '',
           meta_keywords: data.meta_keywords || ''
         }
         
         // 如果有本地草稿且比服务器版本新，使用本地版本
-        if (localDraft && new Date(localDraft.timestamp) > new Date(data.updated_at)) {
+        if (localDraft && new Date(localDraft.timestamp) > new Date(data.update_time)) {
           const localContent = localDraft.content
           const mergedData = {
             ...formData,
             title: localContent.title || formData.title,
             content: localContent.content || formData.content,
             excerpt: localContent.excerpt || formData.excerpt,
-            category: localContent.category || formData.category,
-            tags: localContent.tags || formData.tags
+            category_id: Number(localContent.category_id) || formData.category_id,
+            tag_ids: localContent.tag_ids?.map(Number) || formData.tag_ids
           }
           
           postForm.value = mergedData
           ElMessage.info('已恢复本地未保存的内容，可以通过历史记录查看或恢复服务器版本')
           
           saveHistory.value.unshift({
-            time: data.updated_at,
+            time: data.update_time,
             content: data.content,
             title: data.title
           })
@@ -509,7 +513,7 @@ const loadPost = async () => {
         
         originalForm.value = JSON.parse(JSON.stringify(formData))
       } else {
-        ElMessage.error(message || '加载文章失败')
+        ElMessage.error(response.data.message || '加载文章失败')
         await router.push('/posts')
       }
     } else {
@@ -521,8 +525,8 @@ const loadPost = async () => {
           title: localContent.title || '',
           content: localContent.content || '',
           excerpt: localContent.excerpt || '',
-          category: localContent.category || '',
-          tags: localContent.tags || []
+          category_id: localContent.category_id || '',
+          tag_ids: localContent.tag_ids || []
         }
         
         postForm.value = mergedData
@@ -545,8 +549,8 @@ const categoryStates = ref(new Map())
 const loadCategories = async () => {
   try {
     const response = await getCategories({ page: 1, size: 100, ordering: 'name' })
-    if (response.code === 200) {
-      categories.value = response.data
+    if (response.data.code === 200) {
+      categories.value = response.data.data
       // 初始化每个分类的显示状态
       categories.value.forEach(category => {
         categoryStates.value.set(category.id, {
@@ -571,9 +575,9 @@ const loadCategories = async () => {
 const loadTags = async () => {
   try {
     const response = await getTags({ page: 1, size: 100, ordering: 'name' })
-    if (response.code === 200) {
-      tags.value = response.data.results
-      total.value = response.data.count
+    if (response.data.code === 200) {
+      tags.value = response.data.data.results
+      total.value = response.data.data.count
     }
   } catch (error) {
     console.error('加载标签列表失败:', error)
@@ -585,20 +589,20 @@ const loadTags = async () => {
 const handleCategoryCreate = async (categoryName: string) => {
   try {
     loading.value = true
-    const { code, message, data } = await quickCreateCategory({ name: categoryName })
+    const response = await quickCreateCategory({ name: categoryName })
     
-    if (code === 200 || code === 201) {
-      categories.value.push(data)
-      postForm.value.category = data.id
+    if (response.data.code === 200 || response.data.code === 201) {
+      categories.value.push(response.data.data)
+      postForm.value.category_id = response.data.data.id
       ElMessage.success('创建分类成功')
     } else {
-      ElMessage.error(message || '创建分类失败')
-      postForm.value.category = ''
+      ElMessage.error(response.data.message || '创建分类失败')
+      postForm.value.category_id = 0
     }
   } catch (error) {
     console.error('创建分类失败:', error)
     ElMessage.error('创建分类失败')
-    postForm.value.category = ''
+    postForm.value.category_id = 0
   } finally {
     loading.value = false
   }
@@ -767,8 +771,8 @@ const saveContent = async () => {
       title: postForm.value.title,
       content: postForm.value.content,
       excerpt: postForm.value.excerpt,
-      category: postForm.value.category,
-      tags: postForm.value.tags
+      category_id: postForm.value.category_id,
+      tag_ids: postForm.value.tag_ids || []
     }
     
     // 保存当前内容，添加 saved 标记为 false，表示这是未保存的草稿
@@ -796,15 +800,15 @@ const saveContent = async () => {
     
     // 如果是编辑模式，同时保存到服务器
     if (isEdit) {
-      const { code, data } = await autoSavePost(Number(route.params.id), {
+      const response = await autoSavePost(Number(route.params.id), {
         ...contentToSave,
         title: contentToSave.title || '无标题',
-        category: Number(contentToSave.category) || 0
+        category_id: Number(contentToSave.category_id) || 0
       })
       
-      if (code === 200 || code === 201) {
-        currentVersion.value = data.version
-        nextSaveTime.value = data.next_save_time
+      if (response.data.code === 200 || response.data.code === 201) {
+        currentVersion.value = response.data.data.version
+        nextSaveTime.value = response.data.data.next_save_time
       }
     }
     
@@ -972,9 +976,9 @@ const formatCategories = computed(() => {
           :rules="rules"
           label-position="top"
         >
-          <el-form-item label="分类" prop="category">
+          <el-form-item label="分类" prop="category_id">
             <el-select
-              v-model="postForm.category"
+              v-model="postForm.category_id"
               placeholder="选择分类"
               :disabled="loading"
               filterable
@@ -1021,28 +1025,28 @@ const formatCategories = computed(() => {
                   </el-option>
                   <!-- 孙分类 -->
                   <template v-for="child in category.children" :key="child.id">
-                    <template v-if="categoryStates.get(child.id)?.showChildren && child.children?.length">
-                      <el-option
-                        v-for="grandChild in child.children"
-                        :key="grandChild.id"
-                        :value="grandChild.id"
-                        :label="grandChild.name"
-                        class="grandchild-category"
-                      >
+                  <template v-if="categoryStates.get(child.id)?.showChildren && child.children?.length">
+                    <el-option
+                      v-for="grandChild in child.children"
+                      :key="grandChild.id"
+                      :value="grandChild.id"
+                      :label="grandChild.name"
+                      class="grandchild-category"
+                    >
                         <div class="category-item category-item--third">
-                          <span>{{ grandChild.name }}</span>
-                        </div>
-                      </el-option>
-                    </template>
+                        <span>{{ grandChild.name }}</span>
+                      </div>
+                    </el-option>
                   </template>
                 </template>
+              </template>
               </template>
             </el-select>
           </el-form-item>
 
           <el-form-item label="标签">
             <el-select
-              v-model="postForm.tags"
+              v-model="postForm.tag_ids"
               multiple
               filterable
               allow-create

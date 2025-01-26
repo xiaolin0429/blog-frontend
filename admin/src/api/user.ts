@@ -1,55 +1,51 @@
+import type { AxiosResponse } from 'axios'
+import type { 
+  ApiResponse,
+  RegisterRequest,
+  LoginRequest,
+  LoginResponse,
+  UserInfo,
+  UpdateProfileRequest,
+  ChangePasswordRequest,
+  LogoutRequest
+} from '@/types/api'
 import request from '@/utils/request'
 
-interface UserInfo {
-  id: number
-  username: string
-  email: string
-  nickname: string | null
-  avatar: string | null
-  bio: string | null
-  date_joined: string
-  last_login: string | null
+// 用户注册
+export function register(data: RegisterRequest): Promise<AxiosResponse<ApiResponse<UserInfo>>> {
+  return request.post<ApiResponse<UserInfo>>('/user/register', data)
 }
 
-interface RegisterParams {
-  username: string
-  email: string
-  password: string
-  password2: string
-  nickname?: string
+// 用户登录
+export function login(data: LoginRequest): Promise<AxiosResponse<ApiResponse<LoginResponse>>> {
+  return request.post<ApiResponse<LoginResponse>>('/user/login', data)
 }
 
-/**
- * 用户注册
- * @POST /api/v1/users
- */
-export function register(data: RegisterParams) {
-  return request<UserInfo>({
-    url: '/users',
-    method: 'post',
-    data
+// 获取个人信息
+export function getUserInfo(): Promise<AxiosResponse<ApiResponse<UserInfo>>> {
+  return request.get<ApiResponse<UserInfo>>('/user/me')
+}
+
+// 更新个人信息
+export function updateProfile(data: UpdateProfileRequest): Promise<AxiosResponse<ApiResponse<UserInfo>>> {
+  const formData = new FormData()
+  if (data.nickname) formData.append('nickname', data.nickname)
+  if (data.avatar) formData.append('avatar', data.avatar)
+  if (data.bio) formData.append('bio', data.bio)
+  
+  return request.patch<ApiResponse<UserInfo>>('/user/me', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
   })
 }
 
-/**
- * 获取当前用户信息
- * @GET /api/v1/users/me
- */
-export function getUserInfo() {
-  return request<UserInfo>({
-    url: '/users/me',
-    method: 'get'
-  })
+// 修改密码
+export function changePassword(data: ChangePasswordRequest): Promise<AxiosResponse<ApiResponse<null>>> {
+  return request.put<ApiResponse<null>>('/user/me/password', data)
 }
 
-/**
- * 更新当前用户信息
- * @PUT /api/v1/users/me
- */
-export function updateUserInfo(data: Partial<UserInfo>) {
-  return request<UserInfo>({
-    url: '/users/me',
-    method: 'put',
-    data
-  })
+// 用户登出
+export function logout(data: LogoutRequest): Promise<AxiosResponse<ApiResponse<null>>> {
+  return request.post<ApiResponse<null>>('/user/logout', data)
 } 
