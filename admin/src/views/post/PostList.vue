@@ -139,8 +139,8 @@ import {
   deletePost,
   updatePost
 } from '@/api/post'
-import type { PostResponse, Category, Tag } from '@/types/post'
-import type { PostQuery } from '@/types/api'
+import type { PostResponse, Category, Tag, PaginatedResponse } from '@/types/post'
+import type { ApiResponse, PostQuery } from '@/types/api'
 import PostFilter from './components/PostFilter.vue'
 import PostTable from './components/PostTable.vue'
 import PostBatchDialog from './components/PostBatchDialog.vue'
@@ -171,10 +171,10 @@ const queryParams = ref<PostQuery>({
 const loadPosts = async () => {
   loading.value = true
   try {
-    const res = await getPosts(queryParams.value)
-    if (res && res.items) {
-      posts.value = res.items
-      total.value = res.total || 0
+    const response = await getPosts(queryParams.value)
+    if (response.code === 200 && response.data) {
+      posts.value = response.data.results || []
+      total.value = response.data.count || 0
     } else {
       posts.value = []
       total.value = 0
@@ -193,16 +193,18 @@ const loadPosts = async () => {
 const loadCategoriesAndTags = async () => {
   try {
     const [categoriesRes, tagsRes] = await Promise.all([
-      getCategories({ page: 1, size: 100, ordering: '-created_at' }),
-      getTags({ page: 1, size: 100, ordering: '-created_at' })
+      getCategories({ page: 1, size: 100, ordering: 'name' }),
+      getTags({ page: 1, size: 100, ordering: 'name' })
     ])
-    if (categoriesRes && categoriesRes.items) {
-      categories.value = categoriesRes.items
+    
+    if (categoriesRes.code === 200) {
+      categories.value = categoriesRes.data as Category[]
     } else {
       categories.value = []
     }
-    if (tagsRes && tagsRes.items) {
-      tags.value = tagsRes.items
+    
+    if (tagsRes.code === 200 && tagsRes.data) {
+      tags.value = tagsRes.data.results
     } else {
       tags.value = []
     }
@@ -326,9 +328,10 @@ const handleBatchSetCategory = async (categoryId: number) => {
   if (!selectedRows.value.length) return
 
   try {
-    for (const row of selectedRows.value) {
-      await updatePost(row.id, { category: categoryId })
-    }
+    const promises = selectedRows.value.map(row => 
+      updatePost(row.id, { category: categoryId })
+    )
+    await Promise.all(promises)
     ElMessage.success('批量设置分类成功')
     loadPosts()
   } catch (error) {
@@ -342,9 +345,10 @@ const handleBatchSetTags = async (tagIds: number[]) => {
   if (!selectedRows.value.length) return
 
   try {
-    for (const row of selectedRows.value) {
-      await updatePost(row.id, { tags: tagIds })
-    }
+    const promises = selectedRows.value.map(row => 
+      updatePost(row.id, { tags: tagIds.map(String) })
+    )
+    await Promise.all(promises)
     ElMessage.success('批量设置标签成功')
     loadPosts()
   } catch (error) {

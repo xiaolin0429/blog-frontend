@@ -63,6 +63,10 @@ export interface PostResponse {
   published_at: string | null
   meta_description?: string
   meta_keywords?: string
+  pinned?: boolean
+  allow_comment?: boolean
+  password?: string
+  cover?: string
 }
 
 // 分类
@@ -73,6 +77,7 @@ export interface Category {
   parent?: number | null
   parent_name?: string
   children?: Category[]
+  order: number
   created_at: string
   updated_at: string
 }
@@ -89,9 +94,17 @@ export interface Tag {
 
 // 分页响应
 export interface PaginatedResponse<T> {
-  items: T[]
-  total: number
-  page: number
-  size: number
-  totalPages: number
+  count: number
+  next: string | null
+  previous: string | null
+  results: T[]
+}
+
+// API 响应
+export interface ApiResponse<T> {
+  code: number
+  message: string
+  data: T
+  timestamp: string
+  requestId: string
 } 

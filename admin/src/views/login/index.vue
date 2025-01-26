@@ -68,7 +68,7 @@ const isDark = ref(themeStore.mode === 'dark')
 
 const form = ref({
   username: 'admin',
-  password: 'admin',
+  password: 'admin123',
   remember: false
 })
 

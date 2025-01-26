@@ -4,8 +4,8 @@ import type { ApiResponse } from '@/types/api'
 import request from '@/utils/request'
 
 // 文章相关 API
-export function getPosts(query: PostQuery): Promise<PaginatedResponse<PostResponse>> {
-  return request.get<PaginatedResponse<PostResponse>>('/posts/', { params: query })
+export function getPosts(params: PostQuery): Promise<ApiResponse<PaginatedResponse<PostResponse>>> {
+  return request.get<ApiResponse<PaginatedResponse<PostResponse>>>('/api/v1/posts/', { params })
 }
 
 export function getPost(id: number): Promise<{ code: number, message: string, data: PostResponse }> {
@@ -33,8 +33,8 @@ export function deletePost(id: number): Promise<{ code: number, message: string 
 }
 
 // 分类相关 API
-export function getCategories(query: PageQuery): Promise<ApiResponse<Category[]>> {
-  return request.get<ApiResponse<Category[]>>('/categories/', { params: query })
+export function getCategories(params: { page: number; size: number; ordering: string }): Promise<ApiResponse<Category[]>> {
+  return request.get<ApiResponse<Category[]>>('/api/v1/categories/', { params })
 }
 
 export function createCategory(data: { name: string, description?: string }): Promise<ApiResponse<Category>> {
@@ -68,14 +68,8 @@ export function quickCreateCategory(data: { name: string }): Promise<{ code: num
 }
 
 // 标签相关 API
-export function getTags(query: PageQuery): Promise<ApiResponse<{
-  count: number
-  results: Tag[]
-}>> {
-  return request.get<ApiResponse<{
-    count: number
-    results: Tag[]
-  }>>('/tags/', { params: query })
+export function getTags(params: { page: number; size: number; ordering: string }): Promise<ApiResponse<PaginatedResponse<Tag>>> {
+  return request.get('/api/v1/tags/', { params })
 }
 
 export function createTag(data: { name: string, description?: string }): Promise<ApiResponse<Tag>> {
@@ -167,4 +161,34 @@ export function clearTrash(): Promise<ApiResponse<{
   return request.delete<ApiResponse<{
     deleted_count: number
   }>>('/api/v1/trash/posts/empty')
+}
+
+// 自动保存文章
+export function autoSavePost(id: number, data: {
+  title: string
+  content: string
+  excerpt?: string
+  category?: number
+  tags?: string[]
+  force_save?: boolean
+}): Promise<{
+  code: number
+  message: string
+  data: {
+    version: number
+    next_save_time: string
+  }
+}> {
+  return request.post<{
+    code: number
+    message: string
+    data: {
+      version: number
+      next_save_time: string
+    }
+  }>(`/posts/${id}/auto-save/`, data, {
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  })
 } 

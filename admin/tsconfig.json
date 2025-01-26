@@ -1,11 +1,23 @@
 {
+  "extends": "@vue/tsconfig/tsconfig.dom.json",
+  "include": ["env.d.ts", "src/**/*", "src/**/*.vue"],
   "compilerOptions": {
-    "strict": true,
-    "forceConsistentCasingInFileNames": true
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+    "types": ["element-plus/global", "@wangeditor/editor"],
+    "ignoreDeprecations": "5.0",
+    "allowJs": true,
+    "sourceMap": true,
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "skipLibCheck": true
   },
   "files": [],
   "references": [
-    { "path": "./tsconfig.app.json" },
-    { "path": "./tsconfig.node.json" }
+    {
+      "path": "./tsconfig.node.json"
+    }
   ]
 }

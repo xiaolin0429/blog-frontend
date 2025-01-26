@@ -70,9 +70,26 @@ import { ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import type { Category, Tag } from '@/types/store'
 
-defineProps<{
-  categories: Category[]
-  tags: Tag[]
+const props = defineProps<{
+  categories: {
+    id: number
+    name: string
+    description?: string
+    parent?: number | null
+    parent_name?: string
+    children?: any[]
+    order: number
+    created_at: string
+    updated_at: string
+  }[]
+  tags: {
+    id: number
+    name: string
+    description?: string
+    post_count: number
+    created_at: string
+    updated_at: string
+  }[]
 }>()
 
 const emit = defineEmits<{
