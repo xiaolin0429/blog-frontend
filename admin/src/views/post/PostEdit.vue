@@ -143,7 +143,7 @@ const settingsFormRef = ref<FormInstance>()
 const postForm = ref<CreatePostRequest>({
   title: '',
   content: '',
-  category: 0,
+  category: '',
   tags: [],
   excerpt: '',
   pinned: false,
@@ -330,7 +330,7 @@ const handleSaveDraft = async () => {
       const formData: CreatePostRequest = {
         title: postForm.value.title,
         content: postForm.value.content,
-        category: postForm.value.category || 0,
+        category: postForm.value.category || '',
         tags: postForm.value.tags || [],
         status: postForm.value.status || 'draft',
         excerpt: postForm.value.excerpt,
@@ -637,7 +637,8 @@ const loadCategories = async () => {
   try {
     const response = await getCategories({ page: 1, size: 100, ordering: 'name' })
     if (response.code === 200) {
-      categories.value = response.data
+      // 只保留根节点及其子树
+      categories.value = response.data.filter(item => item.parent === null)
     }
   } catch (error) {
     console.error('加载分类列表失败:', error)
@@ -907,6 +908,22 @@ const saveContent = async () => {
     autoSaving.value = false
   }
 }
+
+// 在 script setup 部分添加以下方法
+const handleCreateCategory = () => {
+  ElMessageBox.prompt('请输入分类名称', '新建分类', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    inputValidator: (value) => {
+      if (!value) {
+        return '分类名称不能为空'
+      }
+      return true
+    }
+  }).then(({ value }) => {
+    handleCategoryCreate(value)
+  }).catch(() => {})
+}
 </script>
 
 <template>
@@ -1026,23 +1043,31 @@ const saveContent = async () => {
           label-position="top"
         >
           <el-form-item label="分类" prop="category">
-            <el-select
+            <el-tree-select
               v-model="postForm.category"
-              placeholder="选择分类"
+              placeholder="选择或创建分类"
+              :data="categories"
+              :props="{
+                value: 'id',
+                label: 'name',
+                children: 'children'
+              }"
               :disabled="loading"
               filterable
-              allow-create
-              default-first-option
-              @create="handleCategoryCreate"
+              clearable
+              check-strictly
               class="w-full"
-            >
-              <el-option
-                v-for="item in categories"
-                :key="item.id"
-                :label="item.name"
-                :value="item.id"
-              />
-            </el-select>
+            />
+            <div class="mt-2">
+              <el-button
+                link
+                type="primary"
+                size="small"
+                @click="handleCreateCategory"
+              >
+                <el-icon><Plus /></el-icon>新建分类
+              </el-button>
+            </div>
           </el-form-item>
 
           <el-form-item label="标签">
