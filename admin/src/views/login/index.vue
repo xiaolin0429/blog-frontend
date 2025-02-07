@@ -102,14 +102,25 @@ const handleLogin = async () => {
         })
         if (success) {
           ElMessage.success('登录成功')
-          const redirect = route.query.redirect?.toString() || '/'
-          console.log('准备跳转到:', redirect)
+          // 获取重定向地址，如果没有则默认到首页
+          const redirect = route.query.redirect?.toString()
+          // 移除 URL 中的 redirect 参数
+          const { redirect: _, ...query } = route.query
+          
           try {
-            await router.replace(redirect)
-            console.log('跳转完成')
+            if (redirect) {
+              // 如果有重定向地址，使用完整的路由对象
+              await router.replace({
+                path: redirect,
+                query: query
+              })
+            } else {
+              // 否则直接跳转到首页
+              await router.replace('/')
+            }
           } catch (routerError) {
             console.error('路由跳转失败:', routerError)
-            // 如果跳转失败，尝试跳转到首页
+            // 如果跳转失败，强制跳转到首页
             await router.replace('/')
           }
         } else {

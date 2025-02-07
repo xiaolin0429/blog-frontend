@@ -148,7 +148,7 @@ const postForm = ref<CreatePostRequest>({
   excerpt: '',
   pinned: false,
   allowComment: true,
-  publishTime: new Date().toISOString(),
+  published_at: new Date().toISOString(),
   password: '',
   status: 'draft',
   cover: '',
@@ -200,7 +200,7 @@ const originalForm = ref<CreatePostRequest>({
   excerpt: '',
   pinned: false,
   allowComment: true,
-  publishTime: new Date().toISOString(),
+  published_at: new Date().toISOString(),
   password: '',
   status: 'draft',
   cover: '',
@@ -261,16 +261,27 @@ const handleSaveDraft = async () => {
   try {
     loading.value = true
     
+    // 验证必填字段
+    if (!postForm.value.title?.trim()) {
+      ElMessage.warning('请输入文章标题')
+      return
+    }
+    
+    if (!postForm.value.category_id || postForm.value.category_id === 0) {
+      ElMessage.warning('请选择文章分类')
+      return
+    }
+    
     const formData: CreatePostRequest = {
-      title: postForm.value.title || '无标题',
+      title: postForm.value.title.trim(),
       content: postForm.value.content || '',
-      category_id: postForm.value.category_id || 0,
+      category_id: postForm.value.category_id,
       tag_ids: postForm.value.tag_ids?.length ? postForm.value.tag_ids : [],
       status: 'draft',
       excerpt: postForm.value.excerpt || '',
       pinned: postForm.value.pinned,
       allowComment: postForm.value.allowComment,
-      publishTime: postForm.value.publishTime,
+      published_at: postForm.value.published_at,
       password: postForm.value.password || '',
       cover: postForm.value.cover || '',
       meta_description: postForm.value.meta_description || '',
@@ -317,7 +328,14 @@ const handleSaveDraft = async () => {
     }
   } catch (error: any) {
     console.error('保存草稿失败:', error)
-    ElMessage.error(error?.message || '保存草稿失败')
+    // 显示更详细的错误信息
+    if (error.response?.data?.message) {
+      ElMessage.error(`保存草稿失败: ${error.response.data.message}`)
+    } else if (error.message) {
+      ElMessage.error(`保存草稿失败: ${error.message}`)
+    } else {
+      ElMessage.error('保存草稿失败，请检查网络连接')
+    }
   } finally {
     loading.value = false
   }
@@ -438,7 +456,7 @@ const loadPost = async () => {
         excerpt: '',
         pinned: false,
         allowComment: true,
-        publishTime: new Date().toISOString(),
+        published_at: new Date().toISOString(),
         password: '',
         status: 'draft',
         cover: '',
@@ -506,7 +524,7 @@ const loadPost = async () => {
         excerpt: data.excerpt || '',
         pinned: data.pinned || false,
         allowComment: data.allowComment ?? true,
-        publishTime: data.published_at || new Date().toISOString(),
+        published_at: data.published_at || new Date().toISOString(),
         password: data.password || '',
         status: data.status || 'draft',
         cover: data.cover || '',
@@ -1060,7 +1078,7 @@ const formatCategories = computed(() => {
         <el-form :model="postForm" label-position="top">
           <el-form-item label="发布时间">
             <el-date-picker
-              v-model="postForm.publishTime"
+              v-model="postForm.published_at"
               type="datetime"
               placeholder="选择发布时间"
               :disabled="loading"

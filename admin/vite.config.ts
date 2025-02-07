@@ -17,19 +17,21 @@ export default defineConfig({
   server: {
     port: 5174,
     proxy: {
-      '^/api/.*': {
+      '^/api/v1': {
         target: 'http://localhost:8000',
-        changeOrigin: true
-      },
-      // 静态资源代理
-      '/media': {
-        target: 'http://127.0.0.1:8000',
-        changeOrigin: true
-      },
-      '/static': {
-        target: 'http://127.0.0.1:8000',
-        changeOrigin: true
-      },
+        changeOrigin: true,
+        configure: (proxy, options) => {
+          proxy.on('error', (err, req, res) => {
+            console.log('proxy error', err);
+          });
+          proxy.on('proxyReq', (proxyReq, req, res) => {
+            console.log('proxy request', req.method, req.url);
+          });
+          proxy.on('proxyRes', (proxyRes, req, res) => {
+            console.log('proxy response', proxyRes.statusCode);
+          });
+        }
+      }
     }
   }
 }) 
