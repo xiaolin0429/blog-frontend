@@ -134,37 +134,40 @@ import {
 } from '@element-plus/icons-vue'
 import {
   getPosts,
-  getCategories,
-  getTags,
-  deletePost,
-  updatePost
+  createPost,
+  updatePost,
+  deletePost
 } from '@/api/post'
-import type { PostResponse, Category, Tag, PaginatedResponse } from '@/types/post'
-import type { ApiResponse, PostQuery } from '@/types/api'
+import { getCategories } from '@/api/category'
+import { getTags } from '@/api/tag'
+import type { Post, PostListItem, PostStatus } from '@/types/post'
+import type { Category } from '@/types/category'
+import type { Tag } from '@/types/tag'
+import type { PaginatedResponse } from '@/types/api'
 import PostFilter from './components/PostFilter.vue'
 import PostTable from './components/PostTable.vue'
 import PostBatchDialog from './components/PostBatchDialog.vue'
 
 const router = useRouter()
 const loading = ref(false)
-const posts = ref<PostResponse[]>([])
+const posts = ref<PostListItem[]>([])
 const total = ref(0)
 const categories = ref<Category[]>([])
 const tags = ref<Tag[]>([])
-const selectedRows = ref<PostResponse[]>([])
+const selectedRows = ref<PostListItem[]>([])
 const batchDialogRef = ref()
 
 // 查询参数
-const queryParams = ref<PostQuery>({
+const queryParams = ref({
   page: 1,
   size: 10,
   ordering: '-created_at',
-  keyword: undefined,
-  category: undefined,
-  tag: undefined,
-  status: undefined,
-  startDate: undefined,
-  endDate: undefined
+  keyword: undefined as string | undefined,
+  category: undefined as number | undefined,
+  tags: undefined as number[] | undefined,
+  status: undefined as ('draft' | 'published' | 'archived') | undefined,
+  date_start: undefined as string | undefined,
+  date_end: undefined as string | undefined
 })
 
 // 加载文章列表
@@ -172,13 +175,9 @@ const loadPosts = async () => {
   loading.value = true
   try {
     const response = await getPosts(queryParams.value)
-    if (response.code === 200 && response.data) {
-      posts.value = response.data.results || []
-      total.value = response.data.count || 0
-    } else {
-      posts.value = []
-      total.value = 0
-    }
+    const { data } = response.data
+    posts.value = data.results || []
+    total.value = data.count || 0
   } catch (error) {
     console.error('加载文章列表失败:', error)
     ElMessage.error('加载文章列表失败')
@@ -193,21 +192,15 @@ const loadPosts = async () => {
 const loadCategoriesAndTags = async () => {
   try {
     const [categoriesRes, tagsRes] = await Promise.all([
-      getCategories({ page: 1, size: 100, ordering: 'name' }),
-      getTags({ page: 1, size: 100, ordering: 'name' })
+      getCategories(),
+      getTags({ ordering: 'name' })
     ])
     
-    if (categoriesRes.code === 200) {
-      categories.value = categoriesRes.data as Category[]
-    } else {
-      categories.value = []
-    }
+    const { data: categoryData } = categoriesRes.data
+    const { data: tagData } = tagsRes.data
     
-    if (tagsRes.code === 200 && tagsRes.data) {
-      tags.value = tagsRes.data.results
-    } else {
-      tags.value = []
-    }
+    categories.value = categoryData || []
+    tags.value = tagData.results || []
   } catch (error) {
     console.error('加载分类和标签失败:', error)
     ElMessage.error('加载分类和标签失败')
@@ -230,10 +223,10 @@ const handleReset = () => {
     ordering: '-created_at',
     keyword: undefined,
     category: undefined,
-    tag: undefined,
+    tags: undefined,
     status: undefined,
-    startDate: undefined,
-    endDate: undefined
+    date_start: undefined,
+    date_end: undefined
   }
   loadPosts()
 }
@@ -244,17 +237,17 @@ const handleCreate = () => {
 }
 
 // 处理编辑文章
-const handleEdit = (row: PostResponse) => {
+const handleEdit = (row: PostListItem) => {
   router.push(`/posts/${row.id}/edit`)
 }
 
 // 处理预览文章
-const handlePreview = (row: PostResponse) => {
+const handlePreview = (row: PostListItem) => {
   window.open(`/posts/${row.id}/preview`, '_blank')
 }
 
 // 处理删除文章
-const handleDelete = async (row: PostResponse) => {
+const handleDelete = async (row: PostListItem) => {
   try {
     await ElMessageBox.confirm(
       '确定要删除这篇文章吗？此操作不可恢复',
@@ -329,7 +322,7 @@ const handleBatchSetCategory = async (categoryId: number) => {
 
   try {
     const promises = selectedRows.value.map(row => 
-      updatePost(row.id, { category: categoryId })
+      updatePost(row.id, { category_id: categoryId })
     )
     await Promise.all(promises)
     ElMessage.success('批量设置分类成功')
@@ -346,7 +339,7 @@ const handleBatchSetTags = async (tagIds: number[]) => {
 
   try {
     const promises = selectedRows.value.map(row => 
-      updatePost(row.id, { tags: tagIds.map(String) })
+      updatePost(row.id, { tag_ids: tagIds })
     )
     await Promise.all(promises)
     ElMessage.success('批量设置标签成功')
@@ -364,7 +357,7 @@ const handleBatchExport = () => {
 }
 
 // 处理选择变化
-const handleSelectionChange = (rows: PostResponse[]) => {
+const handleSelectionChange = (rows: PostListItem[]) => {
   selectedRows.value = rows
 }
 

@@ -106,8 +106,15 @@
 import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Search } from '@element-plus/icons-vue'
-import type { Tag } from '@/types'
+import type { Tag } from '@/types/post'
 import type { FormInstance } from 'element-plus'
+
+interface TagForm {
+  id?: number
+  name: string
+  slug: string
+  description: string
+}
 
 const loading = ref(false)
 const submitting = ref(false)
@@ -121,8 +128,7 @@ const searchQuery = ref('')
 const dialogVisible = ref(false)
 const dialogType = ref<'create' | 'edit'>('create')
 const formRef = ref<FormInstance>()
-const form = ref({
-  id: undefined as number | undefined,
+const form = ref<TagForm>({
   name: '',
   slug: '',
   description: ''
@@ -180,8 +186,8 @@ const handleEdit = (row: Tag) => {
   form.value = {
     id: row.id,
     name: row.name,
-    slug: row.slug,
-    description: row.description || ''
+    description: row.description || '',
+    slug: row.name.toLowerCase().replace(/\s+/g, '-')
   }
   dialogVisible.value = true
 }

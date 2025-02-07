@@ -1,3 +1,5 @@
+export * from './trash'
+
 // 用户角色类型
 export type UserRole = 'admin' | 'user'
 

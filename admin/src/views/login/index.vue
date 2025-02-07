@@ -95,7 +95,11 @@ const handleLogin = async () => {
     if (valid) {
       loading.value = true
       try {
-        const success = await userStore.login(form.value.username, form.value.password)
+        const success = await userStore.login({
+          username: form.value.username,
+          password: form.value.password,
+          remember: form.value.remember
+        })
         if (success) {
           ElMessage.success('登录成功')
           const redirect = route.query.redirect?.toString() || '/'
