@@ -16,7 +16,7 @@
         </div>
       </template>
     </el-table-column>
-    <el-table-column prop="category.name" label="分类" width="120" />
+    <el-table-column prop="category_name" label="分类" width="120" />
     <el-table-column label="标签" width="200">
       <template #default="{ row }">
         <el-tag

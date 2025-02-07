@@ -46,6 +46,7 @@
         <el-table-column label="操作" width="200" fixed="right">
           <template #default="{ row }">
             <el-button type="primary" link @click="handleEdit(row)">编辑</el-button>
+            <el-button type="success" link @click="handleCreateChild(row)">添加子分类</el-button>
             <el-button type="danger" link @click="handleDelete(row)">删除</el-button>
           </template>
         </el-table-column>
@@ -55,21 +56,20 @@
     <!-- 分类表单对话框 -->
     <CategoryForm
       v-model:visible="formVisible"
-      :category="currentCategory"
+      :edit-data="currentCategory"
       :categories="categories"
-      @submit="handleSubmit"
+      :parent-category="parentCategory"
+      @success="handleSuccess"
     />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, nextTick } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Delete, Search, Refresh } from '@element-plus/icons-vue'
 import {
   getCategories,
-  createCategory,
-  updateCategory,
   deleteCategory
 } from '@/api/category'
 import type { Category } from '@/types/category'
@@ -79,11 +79,14 @@ const loading = ref(false)
 const categories = ref<Category[]>([])
 const formVisible = ref(false)
 const currentCategory = ref<Category | null>(null)
+const parentCategory = ref<Category | null>(null)
+const formRef = ref<{ form: any } | null>(null)
 
 // 查询参数
 const queryParams = ref({
   search: undefined as string | undefined,
-  ordering: 'order' as 'order' | 'name' | 'created_at'
+  ordering: 'order' as 'order' | 'name' | 'created_at',
+  tree: true  // 获取树形结构数据
 })
 
 // 加载分类列表
@@ -93,9 +96,9 @@ const loadCategories = async () => {
     const response = await getCategories(queryParams.value)
     const { data } = response.data
     categories.value = data || []
-  } catch (error) {
+  } catch (error: any) {
     console.error('加载分类列表失败:', error)
-    ElMessage.error('加载分类列表失败')
+    ElMessage.error(error.message || '加载分类列表失败')
     categories.value = []
   } finally {
     loading.value = false
@@ -109,67 +112,60 @@ const handleSearch = () => {
 
 // 处理重置
 const handleReset = () => {
-  queryParams.value = {
-    search: undefined,
-    ordering: 'order'
-  }
+  queryParams.value.search = undefined
   loadCategories()
 }
 
-// 处理新建分类
+// 处理创建
 const handleCreate = () => {
   currentCategory.value = null
+  parentCategory.value = null
   formVisible.value = true
 }
 
-// 处理编辑分类
+// 处理编辑
 const handleEdit = (row: Category) => {
   currentCategory.value = row
+  parentCategory.value = null
   formVisible.value = true
 }
 
-// 处理删除分类
+// 处理删除
 const handleDelete = async (row: Category) => {
   try {
     await ElMessageBox.confirm(
-      '确定要删除这个分类吗？如果分类下有文章或子分类，将无法删除',
-      '提示',
+      `确定要删除分类"${row.name}"吗？`,
+      '删除确认',
       {
+        type: 'warning',
         confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
+        cancelButtonText: '取消'
       }
     )
     
     await deleteCategory(row.id)
     ElMessage.success('删除成功')
     loadCategories()
-  } catch (error) {
+  } catch (error: any) {
     if (error !== 'cancel') {
-      console.error('删除分类失败:', error)
-      ElMessage.error('删除失败')
+      ElMessage.error(error.message || '删除失败')
     }
   }
 }
 
-// 处理表单提交
-const handleSubmit = async (data: { name: string; description?: string; parent?: number; order?: number }) => {
-  try {
-    if (currentCategory.value) {
-      await updateCategory(currentCategory.value.id, data)
-      ElMessage.success('更新成功')
-    } else {
-      await createCategory(data)
-      ElMessage.success('创建成功')
-    }
-    formVisible.value = false
-    loadCategories()
-  } catch (error) {
-    console.error('保存分类失败:', error)
-    ElMessage.error('保存失败')
-  }
+// 处理表单提交成功
+const handleSuccess = () => {
+  loadCategories()
 }
 
+// 处理创建子分类
+const handleCreateChild = (parent: Category) => {
+  currentCategory.value = null
+  parentCategory.value = parent
+  formVisible.value = true
+}
+
+// 初始化
 onMounted(() => {
   loadCategories()
 })

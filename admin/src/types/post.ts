@@ -29,35 +29,44 @@ export interface Post {
   title: string
   content: string
   excerpt: string
-  category_id: number
-  tag_ids: number[]
+  category: PostCategory
+  tags: PostTag[]
   status: PostStatus
-  is_pinned: boolean
-  is_allow_comment: boolean
-  publish_time: string
-  access_password: string
-  cover_image: string
+  published_at: string | null
+  author: number
+  author_username: string
+  created_at: string
+  updated_at: string
+  pinned: boolean
+  allowComment: boolean
+  password: string
+  cover: string
   meta_description: string
   meta_keywords: string
-  update_time: string
-  created_at: string
 }
 
 // 文章列表项
 export interface PostListItem {
   id: number
   title: string
-  slug: string
-  excerpt?: string
-  author: PostAuthor
-  category: PostCategory
-  tags: PostTag[]
+  excerpt: string
+  author: number
+  author_username: string
+  category: number
+  category_name: string
+  tags: Array<{
+    id: number
+    name: string
+    description?: string
+    post_count: number
+    created_at: string
+    posts: any[] | null
+  }>
   status: PostStatus
-  view_count: number
-  comment_count: number
-  like_count: number
+  comments_count: number
   created_at: string
-  published_at?: string
+  updated_at: string
+  published_at: string | null
 }
 
 // 文章查询参数
@@ -79,17 +88,24 @@ export interface CreatePostRequest {
   category_id: number
   tag_ids?: number[]
   status?: PostStatus
-  meta_description?: string
-  meta_keywords?: string
-  cover?: string
   pinned?: boolean
   allowComment?: boolean
   publishTime?: string
   password?: string
+  cover?: string
+  meta_description?: string
+  meta_keywords?: string
 }
 
 // 更新文章请求
-export interface UpdatePostRequest extends Partial<CreatePostRequest> {}
+export interface UpdatePostRequest {
+  title?: string
+  content?: string
+  excerpt?: string
+  category_id?: number
+  tag_ids?: number[]
+  status?: PostStatus
+}
 
 // 自动保存文章请求
 export interface AutoSavePostRequest {

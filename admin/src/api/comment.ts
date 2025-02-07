@@ -1,6 +1,6 @@
 import type { ApiResponse } from '@/types/api'
 import type { PaginatedResponse } from '@/types/api'
-import type { Comment, CommentQuery, CreateCommentRequest, UpdateCommentRequest } from '@/types/comment'
+import type { Comment, CommentQuery, CreateCommentRequest, UpdateCommentRequest } from '../types/comment'
 import type { AxiosResponse } from 'axios'
 import request from '@/utils/request'
 

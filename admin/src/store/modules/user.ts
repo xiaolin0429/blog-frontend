@@ -7,7 +7,8 @@ import {
   getUserInfo as getUserInfoApi,
   updateProfile as updateProfileApi,
   changePassword as changePasswordApi,
-  logout as logoutApi
+  logout as logoutApi,
+  refreshToken as refreshTokenApi
 } from '@/api/auth'
 import router from '@/router'
 
@@ -107,6 +108,23 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
+  // 刷新 token
+  const refreshToken = async () => {
+    try {
+      loading.value = true
+      const response = await refreshTokenApi({ refresh: refreshTokenValue.value })
+      const { access } = response.data.data
+      setToken(access)
+      token.value = access
+      return true
+    } catch (error) {
+      console.error('Refresh token failed:', error)
+      return false
+    } finally {
+      loading.value = false
+    }
+  }
+
   return {
     token,
     refreshTokenValue,
@@ -116,6 +134,7 @@ export const useUserStore = defineStore('user', () => {
     logout,
     getUserInfo,
     updateProfile,
-    changePassword
+    changePassword,
+    refreshToken
   }
 }) 

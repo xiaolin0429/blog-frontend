@@ -21,18 +21,18 @@
         <el-table-column prop="title" label="标题" show-overflow-tooltip />
         <el-table-column label="作者" width="120">
           <template #default="{ row }">
-            {{ row.author.nickname || row.author.username }}
+            {{ row.author?.nickname || row.author?.username }}
           </template>
         </el-table-column>
         <el-table-column label="分类" width="120">
           <template #default="{ row }">
-            {{ row.category.name }}
+            {{ row.category?.name || '未分类' }}
           </template>
         </el-table-column>
         <el-table-column label="标签" width="200">
           <template #default="{ row }">
             <el-tag
-              v-for="tag in row.tags"
+              v-for="tag in (row.tags || [])"
               :key="tag.id"
               size="small"
               class="tag-item"
@@ -73,8 +73,8 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import type { TrashPost } from '@/types/trash'
-import { getTrashPosts, restorePost, deleteTrashPost, emptyTrash } from '@/api/trash'
+import type { TrashPost } from '../../types/trash'
+import { getTrashPosts, restorePost, deleteTrashPost, emptyTrash } from '../../api/trash'
 
 // 表格数据
 const posts = ref<TrashPost[]>([])

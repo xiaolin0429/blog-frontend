@@ -1,5 +1,8 @@
 <template>
   <div class="tag-list">
+    <!-- 标签统计卡片 -->
+    <TagStatsCard :stats="stats" @refresh="loadTagStats" />
+
     <el-card>
       <template #header>
         <div class="card-header">
@@ -28,20 +31,13 @@
         </div>
       </template>
 
-      <!-- 标签统计卡片 -->
-      <TagStatsCard v-if="tagStats" :stats="tagStats" class="mb-4" />
-
       <el-table
         v-loading="loading"
-        :data="tags"
+        :data="tagList"
         style="width: 100%"
-        :highlight-current-row="true"
-        @current-change="handleCurrentChange"
-        :row-class-name="tableRowClassName"
-        @row-click="handleRowClick"
+        row-key="id"
       >
-        <el-table-column prop="id" label="ID" width="80" />
-        <el-table-column prop="name" label="名称" />
+        <el-table-column prop="name" label="名称" min-width="200" />
         <el-table-column prop="description" label="描述" show-overflow-tooltip />
         <el-table-column prop="post_count" label="文章数" width="100" align="center" />
         <el-table-column prop="created_at" label="创建时间" width="180">
@@ -61,8 +57,8 @@
         <el-pagination
           v-model:current-page="queryParams.page"
           v-model:page-size="queryParams.size"
-          :total="total"
           :page-sizes="[10, 20, 50, 100]"
+          :total="total"
           layout="total, sizes, prev, pager, next"
           @size-change="handleSizeChange"
           @current-change="handleCurrentChange"
@@ -73,8 +69,8 @@
     <!-- 标签表单对话框 -->
     <TagForm
       v-model:visible="formVisible"
-      :tag="currentTag"
-      @submit="handleSubmit"
+      :edit-data="currentTag"
+      @success="handleSuccess"
     />
   </div>
 </template>
@@ -85,29 +81,32 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Delete, Search, Refresh } from '@element-plus/icons-vue'
 import {
   getTags,
-  createTag,
-  updateTag,
   deleteTag,
   getTagStats
 } from '@/api/tag'
-import type { Tag, TagStatsResponse } from '@/types/tag'
-import type { PaginatedResponse } from '@/types/api'
+import type { Tag } from '@/types/tag'
 import TagForm from './components/TagForm.vue'
 import TagStatsCard from './components/TagStatsCard.vue'
 
 const loading = ref(false)
-const tags = ref<Tag[]>([])
+const tagList = ref<Tag[]>([])
 const total = ref(0)
-const tagStats = ref<TagStatsResponse | null>(null)
 const formVisible = ref(false)
 const currentTag = ref<Tag | null>(null)
 
 // 查询参数
 const queryParams = ref({
-  page: 1,
-  size: 10,
   search: undefined as string | undefined,
-  ordering: '-post_count' as 'id' | 'name' | 'post_count' | '-id' | '-name' | '-post_count'
+  ordering: '-created_at' as string,
+  page: 1,
+  size: 10
+})
+
+// 标签统计数据
+const stats = ref({
+  total: 0,
+  monthNew: 0,
+  unused: 0
 })
 
 // 加载标签列表
@@ -116,12 +115,12 @@ const loadTags = async () => {
   try {
     const response = await getTags(queryParams.value)
     const { data } = response.data
-    tags.value = data.results || []
-    total.value = data.count || 0
-  } catch (error) {
+    tagList.value = data.results
+    total.value = data.count
+  } catch (error: any) {
     console.error('加载标签列表失败:', error)
-    ElMessage.error('加载标签列表失败')
-    tags.value = []
+    ElMessage.error(error.message || '加载标签列表失败')
+    tagList.value = []
     total.value = 0
   } finally {
     loading.value = false
@@ -133,11 +132,10 @@ const loadTagStats = async () => {
   try {
     const response = await getTagStats()
     const { data } = response.data
-    tagStats.value = data
-  } catch (error) {
+    stats.value = data
+  } catch (error: any) {
     console.error('加载标签统计失败:', error)
-    ElMessage.error('加载标签统计失败')
-    tagStats.value = null
+    ElMessage.error(error.message || '加载标签统计失败')
   }
 }
 
@@ -149,37 +147,33 @@ const handleSearch = () => {
 
 // 处理重置
 const handleReset = () => {
-  queryParams.value = {
-    page: 1,
-    size: 10,
-    search: undefined,
-    ordering: '-post_count'
-  }
+  queryParams.value.search = undefined
+  queryParams.value.page = 1
   loadTags()
 }
 
-// 处理新建标签
+// 处理创建
 const handleCreate = () => {
   currentTag.value = null
   formVisible.value = true
 }
 
-// 处理编辑标签
+// 处理编辑
 const handleEdit = (row: Tag) => {
   currentTag.value = row
   formVisible.value = true
 }
 
-// 处理删除标签
+// 处理删除
 const handleDelete = async (row: Tag) => {
   try {
     await ElMessageBox.confirm(
-      '确定要删除这个标签吗？如果标签下有文章，将无法删除',
-      '提示',
+      `确定要删除标签"${row.name}"吗？`,
+      '删除确认',
       {
+        type: 'warning',
         confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
+        cancelButtonText: '取消'
       }
     )
     
@@ -187,36 +181,23 @@ const handleDelete = async (row: Tag) => {
     ElMessage.success('删除成功')
     loadTags()
     loadTagStats()
-  } catch (error) {
+  } catch (error: any) {
     if (error !== 'cancel') {
-      console.error('删除标签失败:', error)
-      ElMessage.error('删除失败')
+      ElMessage.error(error.message || '删除失败')
     }
   }
 }
 
-// 处理表单提交
-const handleSubmit = async (data: { name: string; description?: string }) => {
-  try {
-    if (currentTag.value) {
-      await updateTag(currentTag.value.id, data)
-      ElMessage.success('更新成功')
-    } else {
-      await createTag(data)
-      ElMessage.success('创建成功')
-    }
-    formVisible.value = false
-    loadTags()
-    loadTagStats()
-  } catch (error) {
-    console.error('保存标签失败:', error)
-    ElMessage.error('保存失败')
-  }
+// 处理表单提交成功
+const handleSuccess = () => {
+  loadTags()
+  loadTagStats()
 }
 
-// 处理每页数量变化
+// 处理分页大小变化
 const handleSizeChange = (val: number) => {
   queryParams.value.size = val
+  queryParams.value.page = 1
   loadTags()
 }
 
@@ -226,19 +207,7 @@ const handleCurrentChange = (val: number) => {
   loadTags()
 }
 
-// 当前选中的行
-const currentRow = ref<Tag | null>(null)
-
-// 表格行的 class 名称
-const tableRowClassName = ({ row }: { row: Tag }) => {
-  return row.id === currentRow.value?.id ? 'selected-row' : ''
-}
-
-// 点击行时的处理
-const handleRowClick = (row: Tag) => {
-  currentRow.value = row
-}
-
+// 初始化
 onMounted(() => {
   loadTags()
   loadTagStats()
@@ -267,25 +236,6 @@ onMounted(() => {
     margin-top: 20px;
     display: flex;
     justify-content: flex-end;
-  }
-
-  :deep(.el-table) {
-    .selected-row {
-      background-color: var(--el-color-primary-light-8);
-    }
-
-    .el-table__row {
-      cursor: pointer;
-      transition: background-color 0.1s ease-in-out;
-
-      &:hover {
-        background-color: var(--el-fill-color);
-      }
-    }
-  }
-
-  .mb-4 {
-    margin-bottom: 16px;
   }
 }
 </style> 
