@@ -7,8 +7,12 @@ import { refreshToken } from '@/api/auth'
 
 // 创建axios实例
 const service: AxiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || '/api/v1',
-  timeout: 15000
+  baseURL: '/api/v1',  // 修改为正确的 baseURL
+  timeout: 15000,
+  withCredentials: false,  // 关闭 withCredentials
+  headers: {
+    'Content-Type': 'application/json'
+  }
 })
 
 // 是否正在刷新token
@@ -22,11 +26,31 @@ service.interceptors.request.use(
     // 从localStorage获取token
     const token = localStorage.getItem('access_token')
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`
+      config.headers['Authorization'] = `Bearer ${token}`
+      // 打印认证信息（注意隐藏敏感信息）
+      console.log('Request headers:', {
+        ...config.headers,
+        'Authorization': config.headers['Authorization']?.substring(0, 20) + '...'
+      })
+    } else {
+      console.warn('No access token found in localStorage')
     }
+    
+    // 添加时区信息
+    config.headers['X-Timezone'] = Intl.DateTimeFormat().resolvedOptions().timeZone
+    
+    // 打印请求信息，方便调试
+    console.log('Request:', {
+      url: config.url,
+      method: config.method,
+      data: config.data,
+      headers: config.headers
+    })
+    
     return config
   },
   (error) => {
+    console.error('Request interceptor error:', error)
     return Promise.reject(error)
   }
 )
@@ -36,6 +60,14 @@ service.interceptors.response.use(
   (response: AxiosResponse<ApiResponse>) => {
     const { code, message, data } = response.data
     
+    // 打印响应信息，方便调试
+    console.log('Response:', {
+      url: response.config.url,
+      status: response.status,
+      data: response.data,
+      headers: response.headers
+    })
+    
     // 处理业务错误
     if (code && code !== 200 && code !== 201 && code !== 204) {
       // 处理包含详细错误信息的情况
@@ -43,12 +75,19 @@ service.interceptors.response.use(
       if (data?.errors) {
         // 收集所有错误信息
         const errors = Object.entries(data.errors)
-          .map(([field, msgs]) => Array.isArray(msgs) ? msgs[0] : msgs)
+          .map(([field, msgs]) => `${field}: ${Array.isArray(msgs) ? msgs[0] : msgs}`)
           .filter(msg => msg)
         if (errors.length > 0) {
           errorMessage = errors.join('; ')
         }
       }
+      
+      console.error('Business error:', {
+        code,
+        message: errorMessage,
+        data,
+        requestData: response.config.data
+      })
       
       ElMessage.error(errorMessage || '操作失败')
       return Promise.reject(new Error(errorMessage || '操作失败'))
@@ -57,6 +96,23 @@ service.interceptors.response.use(
     return response
   },
   async (error) => {
+    // 打印详细错误信息
+    console.error('Response error:', {
+      config: {
+        url: error.config?.url,
+        method: error.config?.method,
+        data: error.config?.data,
+        headers: error.config?.headers
+      },
+      response: {
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        headers: error.response?.headers
+      },
+      message: error.message
+    })
+    
     const { config, response } = error
     
     // 如果是401错误，且不是刷新token的请求
@@ -77,7 +133,7 @@ service.interceptors.response.use(
           retryQueue.forEach(cb => cb(newToken))
           retryQueue = []
           // 重试当前请求
-          config.headers.Authorization = `Bearer ${newToken}`
+          config.headers['Authorization'] = `Bearer ${newToken}`
           return service(config)
         } catch (err) {
           console.error('Token refresh failed:', err)
@@ -93,7 +149,7 @@ service.interceptors.response.use(
         // 将请求加入重试队列
         return new Promise(resolve => {
           retryQueue.push((token: string) => {
-            config.headers.Authorization = `Bearer ${token}`
+            config.headers['Authorization'] = `Bearer ${token}`
             resolve(service(config))
           })
         })
@@ -114,6 +170,16 @@ service.interceptors.response.use(
       message = '服务器错误'
     } else if (!response) {
       message = '网络错误，请检查网络连接'
+    }
+
+    // 如果是400错误，尝试获取更详细的错误信息
+    if (response?.status === 400 && response?.data?.errors) {
+      const errors = Object.entries(response.data.errors)
+        .map(([field, msgs]) => `${field}: ${Array.isArray(msgs) ? msgs[0] : msgs}`)
+        .filter(msg => msg)
+      if (errors.length > 0) {
+        message = errors.join('; ')
+      }
     }
 
     ElMessage.error(message)

@@ -26,7 +26,36 @@ export function getPost(id: number): Promise<AxiosResponse<ApiResponse<Post>>> {
 
 // 创建文章
 export function createPost(data: CreatePostRequest): Promise<AxiosResponse<ApiResponse<Post>>> {
-  return request.post<ApiResponse<Post>>('/posts/', data)
+  // 确保数据类型正确
+  const formData = {
+    ...data,
+    category_id: Number(data.category_id),
+    tag_ids: data.tag_ids?.map(Number) || [],
+    pinned: Boolean(data.pinned),
+    allowComment: Boolean(data.allowComment),
+    status: data.status || 'draft',
+    // 确保日期格式正确
+    published_at: data.published_at ? new Date(data.published_at).toISOString() : undefined,
+    // 确保空字符串转为 undefined
+    excerpt: data.excerpt || undefined,
+    password: data.password || undefined,
+    cover: data.cover || undefined,
+    meta_description: data.meta_description || undefined,
+    meta_keywords: data.meta_keywords || undefined
+  } as Record<string, any>
+  
+  // 移除所有 undefined 的字段
+  Object.keys(formData).forEach(key => {
+    if (formData[key] === undefined) {
+      delete formData[key]
+    }
+  })
+  
+  return request.post<ApiResponse<Post>>('/posts/', formData, {
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  })
 }
 
 // 更新文章

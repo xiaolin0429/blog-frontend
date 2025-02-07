@@ -90,7 +90,7 @@ export interface CreatePostRequest {
   status?: PostStatus
   pinned?: boolean
   allowComment?: boolean
-  publishTime?: string
+  published_at?: string
   password?: string
   cover?: string
   meta_description?: string
