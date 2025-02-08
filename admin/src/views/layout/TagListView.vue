@@ -208,30 +208,6 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
-.tag-manage-container {
-  padding: 20px;
-}
-
-.header-actions {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  
-  .search-input {
-    width: 200px;
-  }
-}
-
-.pagination-container {
-  margin-top: 20px;
-  display: flex;
-  justify-content: center;
-}
-
-.dialog-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-}
+<style lang="scss">
+@use '@/styles/views/tag/index.scss';
 </style> 

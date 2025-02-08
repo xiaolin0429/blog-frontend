@@ -5,14 +5,16 @@ export type FileType = 'all' | 'image' | 'document' | 'media'
 
 // 文件信息
 export interface FileInfo {
-  url: string
-  path: string
-  name: string
-  original_name: string
-  type: string
-  size: number
-  mime_type: string
-  upload_time: string
+  id: string          // 文件ID
+  url: string         // 文件访问URL
+  path: string        // 文件存储路径
+  name: string        // 文件名
+  original_name: string // 原始文件名
+  type: string        // 文件类型
+  size: number        // 文件大小
+  mime_type: string   // MIME类型
+  upload_time: string // 上传时间
+  isLoading?: boolean  // 添加可选的 isLoading 字段
 }
 
 // 文件列表查询参数

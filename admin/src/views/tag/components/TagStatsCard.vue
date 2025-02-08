@@ -51,34 +51,6 @@ defineEmits<{
 }>()
 </script>
 
-<style lang="scss" scoped>
-.tag-stats {
-  margin-bottom: 20px;
-
-  .card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .stats-content {
-    padding: 10px 0;
-
-    .stats-item {
-      text-align: center;
-      
-      .label {
-        color: #909399;
-        font-size: 14px;
-        margin-bottom: 8px;
-      }
-      
-      .value {
-        font-size: 24px;
-        font-weight: bold;
-        color: #303133;
-      }
-    }
-  }
-}
+<style lang="scss">
+@use '@/styles/views/tag/components/tag-stats-card.scss';
 </style> 

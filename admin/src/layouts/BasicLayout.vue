@@ -126,8 +126,8 @@
           <el-button link class="action-btn">
             <el-icon><User /></el-icon>
           </el-button>
-          <el-button link class="action-btn">
-            <el-icon><Refresh /></el-icon>
+          <el-button link class="action-btn" @click="handleLogout">
+            <el-icon><SwitchButton /></el-icon>
           </el-button>
         </div>
       </div>
@@ -147,23 +147,25 @@
           </el-button>
         </div>
         <div class="header-right">
-          <el-button
-            link
-            @click="toggleTheme"
-            :title="isDark ? '切换到浅色模式' : '切换到深色模式'"
-          >
-            <el-icon :size="20">
-              <component :is="isDark ? 'Sunny' : 'Moon'" />
-            </el-icon>
-          </el-button>
-          <el-button
-            link
-            @click="handleRefresh"
-          >
-            <el-icon :size="20">
-              <Refresh />
-            </el-icon>
-          </el-button>
+          <el-button-group>
+            <el-button
+              link
+              @click="toggleTheme"
+              :title="isDark ? '切换到浅色模式' : '切换到深色模式'"
+            >
+              <el-icon :size="20">
+                <component :is="isDark ? 'Sunny' : 'Moon'" />
+              </el-icon>
+            </el-button>
+            <el-button
+              link
+              @click="handleRefresh"
+            >
+              <el-icon :size="20">
+                <Refresh />
+              </el-icon>
+            </el-button>
+          </el-button-group>
         </div>
       </el-header>
 
@@ -183,10 +185,12 @@ import {
   Odometer, Document, Files, ChatDotRound, FolderOpened,
   Link, Timer, Brush, Menu, Connection, User, Setting,
   DataLine, Box, Tools, Shop, Expand, Fold, Refresh,
-  Moon, Sunny
+  Moon, Sunny, SwitchButton
 } from '@element-plus/icons-vue'
 import { useThemeStore } from '@/store/common/theme'
+import { useUserStore } from '@/store/modules/user'
 import { storeToRefs } from 'pinia'
+import { ElMessageBox } from 'element-plus'
 
 const route = useRoute()
 const router = useRouter()
@@ -198,12 +202,14 @@ const themeStore = useThemeStore()
 const { mode: themeMode } = storeToRefs(themeStore)
 const isDark = computed(() => themeMode.value === 'dark')
 
+const userStore = useUserStore()
+
 // 将图标组件标记为非响应式
 const icons = markRaw({
   Odometer, Document, Files, ChatDotRound, FolderOpened,
   Link, Timer, Brush, Menu, Connection, User, Setting,
   DataLine, Box, Tools, Shop, Expand, Fold, Refresh,
-  Moon, Sunny
+  Moon, Sunny, SwitchButton
 })
 
 // 监听路由变化，更新激活的菜单项
@@ -234,281 +240,20 @@ const toggleTheme = () => {
 const handleRefresh = () => {
   window.location.reload()
 }
+
+const handleLogout = async () => {
+  try {
+    await ElMessageBox.confirm('确定要退出登录吗？', '提示', {
+      type: 'warning'
+    })
+    await userStore.logout()
+    router.push('/login')
+  } catch {
+    // 取消退出
+  }
+}
 </script>
 
-<style scoped>
-.layout-container {
-  height: 100vh;
-  background-color: var(--el-bg-color-page);
-}
-
-.aside {
-  background-color: var(--el-bg-color);
-  border-right: 1px solid var(--el-border-color);
-  display: flex;
-  flex-direction: column;
-  transition: width 0.3s;
-}
-
-.logo {
-  height: 64px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-bottom: 1px solid var(--el-border-color);
-  overflow: hidden;
-}
-
-.logo-img {
-  height: 32px;
-  width: auto;
-}
-
-.search-box {
-  padding: 16px;
-}
-
-.dark-input :deep(.el-input__wrapper) {
-  background-color: var(--el-bg-color-page);
-  box-shadow: 0 0 0 1px var(--el-border-color);
-}
-
-.dark-input :deep(.el-input__inner) {
-  color: var(--el-text-color-regular);
-}
-
-.dark-input :deep(.el-input__inner::placeholder) {
-  color: var(--el-text-color-secondary);
-}
-
-.el-menu-vertical {
-  border-right: none;
-  flex: 1;
-}
-
-.el-menu-vertical:not(.el-menu--collapse) {
-  width: 220px;
-}
-
-/* 收起时的菜单样式 */
-.el-menu--collapse {
-  width: 64px;
-}
-
-.el-menu--collapse .menu-group {
-  display: none;
-}
-
-.el-menu--collapse .el-menu-item {
-  margin: 4px auto !important;
-  width: 48px !important;
-}
-
-/* 收起时的图标样式 */
-.el-menu--collapse .el-menu-item .el-icon {
-  margin: 0;
-}
-
-/* 收起时的用户信息样式 */
-.aside:has(.el-menu--collapse) .user-info {
-  display: none;
-}
-
-.header {
-  background-color: var(--el-bg-color);
-  border-bottom: 1px solid var(--el-border-color);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 16px;
-}
-
-.header :deep(.el-button) {
-  color: var(--el-text-color-regular);
-}
-
-.main {
-  background-color: var(--el-bg-color-page);
-  padding: 24px;
-  color: var(--el-text-color-regular);
-}
-
-.el-menu-vertical :deep(.el-sub-menu__title) {
-  color: var(--el-text-color-regular);
-}
-
-.el-menu-vertical :deep(.el-sub-menu__title:hover) {
-  background-color: var(--el-fill-color);
-}
-
-.el-menu-vertical :deep(.el-menu-item) {
-  color: var(--el-text-color-regular);
-}
-
-.el-menu-vertical :deep(.el-menu-item:hover) {
-  background-color: var(--el-fill-color);
-}
-
-.el-menu-vertical :deep(.el-menu-item.is-active) {
-  background-color: var(--el-fill-color);
-  color: var(--el-color-primary);
-}
-
-.menu-group {
-  padding: 12px 20px 8px;
-  font-size: 12px;
-  color: var(--el-text-color-secondary);
-  cursor: default;
-  user-select: none;
-}
-
-.el-menu-vertical :deep(.el-menu-item) {
-  height: 40px;
-  line-height: 40px;
-  margin: 4px 0;
-}
-
-.el-menu-vertical :deep(.el-menu-item.is-active) {
-  background-color: var(--el-fill-color);
-  color: var(--el-color-primary);
-  border-radius: 4px;
-  margin: 4px 12px;
-  width: calc(100% - 24px);
-}
-
-.el-menu-vertical :deep(.el-menu-item:hover:not(.is-active)) {
-  background-color: var(--el-fill-color);
-  border-radius: 4px;
-  margin: 4px 12px;
-  width: calc(100% - 24px);
-}
-
-/* 顶部按钮样式 */
-.header-left .el-button,
-.header-right .el-button {
-  width: 40px;
-  height: 40px;
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.header-left .el-button:hover,
-.header-right .el-button:hover {
-  background-color: var(--el-fill-color);
-}
-
-/* 子菜单样式 */
-.el-menu-vertical :deep(.el-sub-menu__title) {
-  color: var(--el-text-color-regular);
-  height: 40px;
-  line-height: 40px;
-  margin: 4px 0;
-}
-
-.el-menu-vertical :deep(.el-sub-menu__title:hover) {
-  background-color: var(--el-fill-color);
-  border-radius: 4px;
-  margin: 4px 12px;
-  width: calc(100% - 24px);
-}
-
-.el-menu-vertical :deep(.el-sub-menu.is-active > .el-sub-menu__title) {
-  color: var(--el-color-primary);
-}
-
-/* 子菜单内的菜单项样式 */
-.el-menu-vertical :deep(.el-sub-menu .el-menu-item) {
-  min-width: unset;
-  background-color: var(--el-bg-color-page);
-}
-
-.el-menu-vertical :deep(.el-sub-menu .el-menu-item:hover:not(.is-active)) {
-  background-color: var(--el-fill-color);
-}
-
-.el-menu-vertical :deep(.el-sub-menu .el-menu-item.is-active) {
-  background-color: var(--el-fill-color);
-}
-
-/* 收起时的子菜单弹出样式 */
-.el-menu--popup {
-  background-color: var(--el-bg-color) !important;
-  border: 1px solid var(--el-border-color);
-  padding: 4px;
-  min-width: 180px;
-}
-
-.el-menu--popup .el-menu-item {
-  height: 40px;
-  line-height: 40px;
-  margin: 4px 0;
-  border-radius: 4px;
-}
-
-.el-menu--popup .el-menu-item:hover:not(.is-active) {
-  background-color: var(--el-fill-color) !important;
-}
-
-.el-menu--popup .el-menu-item.is-active {
-  background-color: var(--el-fill-color) !important;
-  color: var(--el-color-primary) !important;
-}
-
-.user-info {
-  padding: 12px;
-  border-top: 1px solid var(--el-border-color);
-  background-color: var(--el-bg-color);
-}
-
-.user-avatar {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 8px;
-}
-
-.user-details {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.username {
-  font-size: 14px;
-  color: var(--el-text-color-primary);
-  line-height: 1.2;
-}
-
-.role-tag {
-  background-color: transparent !important;
-  border-color: var(--el-border-color) !important;
-  color: var(--el-text-color-regular) !important;
-  font-size: 12px !important;
-  padding: 0 6px !important;
-  height: 20px !important;
-  line-height: 18px !important;
-}
-
-.user-actions {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 8px;
-}
-
-.action-btn {
-  padding: 6px !important;
-  height: 28px !important;
-  color: var(--el-text-color-regular) !important;
-}
-
-.action-btn:hover {
-  background-color: var(--el-fill-color) !important;
-  border-radius: 4px;
-}
-
-.action-btn :deep(.el-icon) {
-  font-size: 16px;
-}
+<style lang="scss">
+@use '@/styles/layouts/basic-layout.scss';
 </style> 

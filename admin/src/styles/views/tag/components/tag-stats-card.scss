@@ -1,0 +1,29 @@
+.tag-stats {
+  margin-bottom: 20px;
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .stats-content {
+    padding: 10px 0;
+
+    .stats-item {
+      text-align: center;
+      
+      .label {
+        color: var(--el-text-color-secondary);
+        font-size: 14px;
+        margin-bottom: 8px;
+      }
+      
+      .value {
+        font-size: 24px;
+        font-weight: bold;
+        color: var(--el-text-color-primary);
+      }
+    }
+  }
+} 

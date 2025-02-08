@@ -126,18 +126,26 @@
 import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
-import { postApi } from '@/api'
+import { getCategories, createCategory, updateCategory, deleteCategory } from '@/api/category'
+import type { Category } from '@/types/category'
 import { formatDate } from '@/utils/format'
+
+interface CategoryForm {
+  id?: number
+  name: string
+  slug: string
+  description: string
+}
 
 const loading = ref(false)
 const submitting = ref(false)
 const dialogVisible = ref(false)
 const isEdit = ref(false)
-const categories = ref([])
+const categories = ref<Category[]>([])
 const formRef = ref()
 
 // 表单数据
-const formData = ref({
+const formData = ref<CategoryForm>({
   name: '',
   slug: '',
   description: ''
@@ -158,8 +166,8 @@ const rules = {
 const fetchCategories = async () => {
   try {
     loading.value = true
-    const { data } = await postApi.getCategories()
-    categories.value = data
+    const response = await getCategories()
+    categories.value = response.data.data
   } catch (error: any) {
     ElMessage.error(error.message || '获取分类列表失败')
   } finally {
@@ -196,7 +204,7 @@ const handleDelete = async (row: any) => {
       }
     )
 
-    await postApi.deleteCategory(row.id)
+    await deleteCategory(row.id)
     ElMessage.success('删除成功')
     fetchCategories()
   } catch (error: any) {
@@ -215,10 +223,13 @@ const handleSubmit = async () => {
     submitting.value = true
 
     if (isEdit.value) {
-      await postApi.updateCategory(formData.value.id, formData.value)
+      if (!formData.value.id) {
+        throw new Error('分类ID不存在')
+      }
+      await updateCategory(formData.value.id, formData.value)
       ElMessage.success('更新成功')
     } else {
-      await postApi.createCategory(formData.value)
+      await createCategory(formData.value)
       ElMessage.success('创建成功')
     }
 
@@ -236,36 +247,6 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
-.category-list {
-  @apply p-6;
-}
-
-:deep(.el-card) {
-  @apply !border-none dark:!bg-gray-800;
-}
-
-:deep(.el-table) {
-  @apply !bg-transparent;
-}
-
-:deep(.el-table__row) {
-  @apply dark:!bg-gray-800 dark:hover:!bg-gray-700;
-}
-
-:deep(.el-table__header) {
-  @apply dark:!bg-gray-700;
-}
-
-:deep(.el-table__cell) {
-  @apply dark:!text-gray-300 dark:!border-gray-700;
-}
-
-:deep(.el-dialog) {
-  @apply dark:!bg-gray-800;
-}
-
-:deep(.el-dialog__header) {
-  @apply dark:!text-gray-300;
-}
+<style lang="scss">
+@use '@/styles/views/layout/categories/index.scss';
 </style> 

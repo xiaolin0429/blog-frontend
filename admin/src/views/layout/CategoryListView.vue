@@ -106,7 +106,7 @@
 import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Search } from '@element-plus/icons-vue'
-import type { Category } from '@/types'
+import type { Category } from '@/types/category'
 import type { FormInstance } from 'element-plus'
 
 const loading = ref(false)
@@ -202,30 +202,6 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
-.category-manage-container {
-  padding: 20px;
-}
-
-.header-actions {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  
-  .search-input {
-    width: 200px;
-  }
-}
-
-.pagination-container {
-  margin-top: 20px;
-  display: flex;
-  justify-content: center;
-}
-
-.dialog-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-}
+<style lang="scss">
+@use '@/styles/views/category/category-list.scss';
 </style> 

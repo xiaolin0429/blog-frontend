@@ -48,4 +48,13 @@ export function changePassword(data: ChangePasswordRequest): Promise<AxiosRespon
 // 用户登出
 export function logout(data: LogoutRequest): Promise<AxiosResponse<ApiResponse<null>>> {
   return request.post<ApiResponse<null>>('/user/logout', data)
+}
+
+// 上传用户头像
+export function uploadUserAvatar(data: FormData): Promise<AxiosResponse<ApiResponse<string>>> {
+  return request.post<ApiResponse<string>>('/users/avatar', data, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  })
 } 

@@ -1,0 +1,40 @@
+.category-list {
+  padding: 1.5rem;
+}
+
+:deep(.el-card) {
+  border: none;
+}
+
+.dark :deep(.el-card) {
+  background-color: #1f2937;
+}
+
+:deep(.el-table) {
+  background-color: transparent;
+}
+
+:deep(.el-table__row) {
+  background-color: #1f2937;
+}
+
+:deep(.el-table__row:hover) {
+  background-color: #374151;
+}
+
+:deep(.el-table__header) {
+  background-color: #374151;
+}
+
+:deep(.el-table__cell) {
+  color: #d1d5db;
+  border-color: #374151;
+}
+
+:deep(.el-dialog) {
+  background-color: #1f2937;
+}
+
+:deep(.el-dialog__header) {
+  color: #d1d5db;
+} 

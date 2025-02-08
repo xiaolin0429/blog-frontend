@@ -78,8 +78,8 @@ import CategoryForm from './components/CategoryForm.vue'
 const loading = ref(false)
 const categories = ref<Category[]>([])
 const formVisible = ref(false)
-const currentCategory = ref<Category | null>(null)
-const parentCategory = ref<Category | null>(null)
+const currentCategory = ref<Category | undefined>(undefined)
+const parentCategory = ref<Category | undefined>(undefined)
 const formRef = ref<{ form: any } | null>(null)
 
 // 查询参数
@@ -118,15 +118,15 @@ const handleReset = () => {
 
 // 处理创建
 const handleCreate = () => {
-  currentCategory.value = null
-  parentCategory.value = null
+  currentCategory.value = undefined
+  parentCategory.value = undefined
   formVisible.value = true
 }
 
 // 处理编辑
 const handleEdit = (row: Category) => {
   currentCategory.value = row
-  parentCategory.value = null
+  parentCategory.value = undefined
   formVisible.value = true
 }
 
@@ -160,7 +160,7 @@ const handleSuccess = () => {
 
 // 处理创建子分类
 const handleCreateChild = (parent: Category) => {
-  currentCategory.value = null
+  currentCategory.value = undefined
   parentCategory.value = parent
   formVisible.value = true
 }

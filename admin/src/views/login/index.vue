@@ -137,27 +137,6 @@ const handleLogin = async () => {
 }
 </script>
 
-<style lang="scss" scoped>
-.theme-switch {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  z-index: 100;
-}
-
-:deep(.el-button) {
-  background: var(--el-bg-color);
-  border-color: var(--el-border-color);
-  color: var(--el-text-color-regular);
-  
-  &:hover {
-    background: var(--el-fill-color-light);
-    border-color: var(--el-border-color-light);
-    color: var(--el-color-primary);
-  }
-}
-</style>
-
 <style lang="scss">
 @use '@/styles/views/login/index.scss';
-</style> 
+</style>

@@ -122,7 +122,7 @@
 import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
-import { postApi } from '@/api'
+import { postApi } from '@/api/post'
 import { formatDate } from '@/utils/format'
 
 const loading = ref(false)
@@ -138,7 +138,11 @@ const pageSize = ref(20)
 const total = ref(0)
 
 // 表单数据
-const formData = ref({
+const formData = ref<{
+  id?: number
+  name: string
+  slug: string
+}>({
   name: '',
   slug: ''
 })
@@ -218,6 +222,9 @@ const handleSubmit = async () => {
     submitting.value = true
 
     if (isEdit.value) {
+      if (!formData.value.id) {
+        throw new Error('标签ID不存在')
+      }
       await postApi.updateTag(formData.value.id, formData.value)
       ElMessage.success('更新成功')
     } else {
@@ -251,36 +258,6 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
-.tag-list {
-  @apply p-6;
-}
-
-:deep(.el-card) {
-  @apply !border-none dark:!bg-gray-800;
-}
-
-:deep(.el-table) {
-  @apply !bg-transparent;
-}
-
-:deep(.el-table__row) {
-  @apply dark:!bg-gray-800 dark:hover:!bg-gray-700;
-}
-
-:deep(.el-table__header) {
-  @apply dark:!bg-gray-700;
-}
-
-:deep(.el-table__cell) {
-  @apply dark:!text-gray-300 dark:!border-gray-700;
-}
-
-:deep(.el-dialog) {
-  @apply dark:!bg-gray-800;
-}
-
-:deep(.el-dialog__header) {
-  @apply dark:!text-gray-300;
-}
+<style lang="scss">
+@use '@/styles/views/layout/tags/index.scss';
 </style> 

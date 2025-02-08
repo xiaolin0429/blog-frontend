@@ -92,7 +92,7 @@ const loading = ref(false)
 const tagList = ref<Tag[]>([])
 const total = ref(0)
 const formVisible = ref(false)
-const currentTag = ref<Tag | null>(null)
+const currentTag = ref<Tag | undefined>(undefined)
 
 // 查询参数
 const queryParams = ref({
@@ -154,7 +154,7 @@ const handleReset = () => {
 
 // 处理创建
 const handleCreate = () => {
-  currentTag.value = null
+  currentTag.value = undefined
   formVisible.value = true
 }
 
@@ -214,28 +214,6 @@ onMounted(() => {
 })
 </script>
 
-<style lang="scss" scoped>
-.tag-list {
-  .card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-
-    .right {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-
-      .search-input {
-        width: 200px;
-      }
-    }
-  }
-
-  .pagination {
-    margin-top: 20px;
-    display: flex;
-    justify-content: flex-end;
-  }
-}
+<style lang="scss">
+@use '@/styles/views/tag/list.scss';
 </style> 

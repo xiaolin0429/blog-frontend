@@ -81,12 +81,12 @@
                   >
                     {{ post.title }}
                   </router-link>
-                  <span class="item-date">{{ post.createdAt }}</span>
+                  <span class="item-date">{{ post.created_at }}</span>
                 </div>
                 <div class="item-meta">
-                  <span><el-icon><View /></el-icon> {{ post.views }}</span>
-                  <span><el-icon><ChatDotRound /></el-icon> {{ post.comments }}</span>
-                  <span><el-icon><Star /></el-icon> {{ post.likes }}</span>
+                  <span><el-icon><View /></el-icon> {{ post.view_count }}</span>
+                  <span><el-icon><ChatDotRound /></el-icon> {{ post.comment_count }}</span>
+                  <span><el-icon><Star /></el-icon> {{ post.like_count }}</span>
                 </div>
               </div>
             </div>
@@ -117,7 +117,7 @@
               >
                 <div class="item-main">
                   <div class="comment-content">{{ comment.content }}</div>
-                  <span class="item-date">{{ comment.createdAt }}</span>
+                  <span class="item-date">{{ comment.created_at }}</span>
                 </div>
                 <div class="item-meta">
                   <span>来自文章：</span>
@@ -148,7 +148,8 @@ import {
   View,
   Star
 } from '@element-plus/icons-vue'
-import type { Post, Comment } from '@/types'
+import type { Post } from '@/types/post'
+import type { Comment } from '@/types/comment'
 
 const router = useRouter()
 const loading = ref(true)
@@ -168,90 +169,6 @@ const recentComments = ref<Comment[]>([])
 // 待实现获取数据的功能
 </script>
 
-<style scoped>
-.dashboard-container {
-  .stat-card {
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      
-      .el-icon {
-        font-size: 20px;
-        color: #409eff;
-      }
-    }
-    
-    .card-value {
-      font-size: 24px;
-      font-weight: bold;
-      color: #303133;
-      text-align: center;
-      padding: 10px 0;
-    }
-  }
-}
-
-.dashboard-content {
-  margin-top: 20px;
-}
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.recent-list {
-  .recent-item {
-    padding: 10px 0;
-    border-bottom: 1px solid #ebeef5;
-    
-    &:last-child {
-      border-bottom: none;
-    }
-    
-    .item-main {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 5px;
-    }
-    
-    .item-title {
-      color: #303133;
-      text-decoration: none;
-      
-      &:hover {
-        color: #409eff;
-      }
-    }
-    
-    .item-date {
-      color: #909399;
-      font-size: 12px;
-    }
-    
-    .item-meta {
-      color: #909399;
-      font-size: 12px;
-      
-      span {
-        margin-right: 15px;
-        display: inline-flex;
-        align-items: center;
-        
-        .el-icon {
-          margin-right: 4px;
-        }
-      }
-    }
-    
-    .comment-content {
-      color: #606266;
-      font-size: 14px;
-      margin-right: 10px;
-    }
-  }
-}
+<style lang="scss">
+@use '@/styles/views/dashboard/index.scss';
 </style> 

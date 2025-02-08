@@ -101,7 +101,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useUserStore } from '@/store/user'
+import { useUserStore } from '@/store/modules/user'
 import { ElMessageBox } from 'element-plus'
 import {
   Monitor,

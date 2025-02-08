@@ -1,0 +1,38 @@
+.post-trash {
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .tag-item {
+    margin-right: 4px;
+    margin-bottom: 4px;
+  }
+
+  .pagination {
+    margin-top: 20px;
+    padding: 10px 0;
+    display: flex;
+    justify-content: flex-end;
+    background-color: var(--el-bg-color);
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+  }
+
+  :deep(.el-table) {
+    .selected-row {
+      background-color: var(--el-color-primary-light-8);
+    }
+
+    .el-table__row {
+      cursor: pointer;
+      transition: background-color 0.15s ease-in-out;
+
+      &:hover {
+        background-color: var(--el-fill-color);
+      }
+    }
+  }
+} 

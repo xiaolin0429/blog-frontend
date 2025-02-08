@@ -110,4 +110,14 @@ export function uploadImage(data: FormData): Promise<AxiosResponse<ApiResponse<s
       'Content-Type': 'multipart/form-data'
     }
   })
+}
+
+export const postApi = {
+  getTags: async (params: { page: number; size: number }) => {
+    const res = await request.get('/tags', { params })
+    return res.data.data
+  },
+  createTag: (data: { name: string; slug: string }) => request.post('/tags', data),
+  updateTag: (id: number, data: { name: string; slug: string }) => request.put(`/tags/${id}`, data),
+  deleteTag: (id: number) => request.delete(`/tags/${id}`)
 } 

@@ -1,4 +1,4 @@
-import { Router } from 'vue-router'
+import type { Router } from 'vue-router'
 import { validateToken } from '@/utils/auth'
 import NProgress from 'nprogress'
 import 'nprogress/nprogress.css'

@@ -1,8 +1,35 @@
-import type { ApiResponse } from '@/types/api'
-import type { PaginatedResponse } from '@/types/api'
-import type { Comment, CommentQuery, CreateCommentRequest, UpdateCommentRequest } from '../types/comment'
+import type { ApiResponse, PaginatedResponse } from '@/types/api'
+import type { CreateCommentRequest, UpdateCommentRequest } from '../types/comment'
 import type { AxiosResponse } from 'axios'
 import request from '@/utils/request'
+
+export interface Comment {
+  id: number
+  content: string
+  author: {
+    id: number
+    username: string
+    nickname?: string
+  }
+  post: {
+    id: number
+    title: string
+  }
+  likes: number
+  replyCount: number
+  status: 'approved' | 'pending' | 'rejected'
+  createdAt: string
+}
+
+export interface CommentQuery {
+  page: number
+  size: number
+  ordering: string
+  keyword?: string
+  status?: string
+  startDate?: string
+  endDate?: string
+}
 
 // 获取全局评论列表
 export function getComments(params?: CommentQuery): Promise<AxiosResponse<ApiResponse<PaginatedResponse<Comment>>>> {
@@ -43,7 +70,7 @@ export function batchDeleteComments(ids: number[]): Promise<AxiosResponse<ApiRes
 }
 
 // 更新评论状态
-export function updateCommentStatus(id: number, status: 'visible' | 'hidden'): Promise<AxiosResponse<ApiResponse<Comment>>> {
+export function updateCommentStatus(id: number, status: 'approved' | 'rejected' | 'pending'): Promise<AxiosResponse<ApiResponse<Comment>>> {
   return request.patch<ApiResponse<Comment>>(`/comments/${id}/status`, { status })
 }
 

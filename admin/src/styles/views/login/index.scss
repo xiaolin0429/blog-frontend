@@ -3,126 +3,44 @@
 @use '../../_mixins' as m;
 
 .login-container {
-  @include m.flex(row, center, center);
-  min-height: 100vh;
-  background-color: var(--el-bg-color-page);
-  transition: background-color 0.3s ease;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: var(--el-bg-color);
+  position: relative;
+
+  .theme-switch {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 100;
+  }
 
   .login-card {
-    width: 100%;
-    max-width: 480px;
-    padding: v.$spacing-extra-large;
-    background-color: var(--el-bg-color);
-    border-radius: v.$border-radius-base;
-    border: 1px solid var(--el-border-color-light);
-    transition: all 0.3s ease;
-    
-    @include m.box-shadow(light);
-    
-    :root.dark & {
-      @include m.box-shadow(dark);
-    }
+    width: 400px;
+    padding: 20px;
+    background-color: var(--el-bg-color-overlay);
+    border-radius: 8px;
+    box-shadow: var(--el-box-shadow-light);
 
     .login-title {
-      margin-bottom: v.$spacing-large;
       text-align: center;
-      font-size: v.$font-size-extra-large;
-      font-weight: 600;
       color: var(--el-text-color-primary);
-      transition: color 0.3s ease;
+      margin-bottom: 30px;
+      font-size: 24px;
     }
 
-    :deep(.el-input) {
-      .el-input__wrapper {
-        background-color: var(--el-bg-color);
-        box-shadow: 0 0 0 1px var(--el-border-color-base);
-        transition: all 0.3s ease;
-
-        &:hover {
-          box-shadow: 0 0 0 1px var(--el-border-color-light);
-        }
-
-        &.is-focus {
-          box-shadow: 0 0 0 1px var(--el-color-primary);
-        }
-      }
-
-      .el-input__inner {
-        color: var(--el-text-color-regular);
-        transition: color 0.3s ease;
-
-        &::placeholder {
-          color: var(--el-text-color-placeholder);
-          transition: color 0.3s ease;
-        }
-      }
-
-      .el-input__prefix {
-        color: var(--el-text-color-secondary);
-        transition: color 0.3s ease;
-      }
-    }
-
-    :deep(.el-form-item) {
-      margin-bottom: v.$spacing-medium;
-
-      &:last-child {
-        margin-bottom: 0;
-      }
-
-      .el-form-item__error {
-        color: var(--el-color-danger);
-        transition: color 0.3s ease;
-      }
-    }
-
-    :deep(.el-checkbox) {
-      .el-checkbox__label {
-        color: var(--el-text-color-regular);
-        transition: color 0.3s ease;
-      }
-
-      .el-checkbox__input.is-checked {
-        .el-checkbox__inner {
-          background-color: var(--el-color-primary);
-          border-color: var(--el-color-primary);
-        }
-
-        + .el-checkbox__label {
-          color: var(--el-color-primary);
-        }
-      }
-    }
-
-    :deep(.el-button) {
+    .login-button {
       width: 100%;
-      margin-top: v.$spacing-large;
-      transition: all 0.3s ease;
-      
-      &.is-loading {
-        background-color: color.adjust(v.$primary-color, $lightness: 20%);
-      }
-
-      &:not(.is-loading):hover {
-        background-color: color.adjust(v.$primary-color, $lightness: 10%);
-      }
     }
 
-    .register-link {
-      margin-top: v.$spacing-medium;
-      text-align: center;
-      color: var(--el-text-color-secondary);
-      transition: color 0.3s ease;
+    :deep(.el-input__wrapper) {
+      background-color: var(--el-bg-color-page);
+    }
 
-      a {
-        color: var(--el-color-primary);
-        text-decoration: none;
-        transition: color 0.3s ease;
-
-        &:hover {
-          color: color.adjust(v.$primary-color, $lightness: 20%);
-        }
-      }
+    :deep(.el-checkbox__label) {
+      color: var(--el-text-color-regular);
     }
   }
 } 

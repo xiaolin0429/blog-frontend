@@ -183,7 +183,7 @@ const selectedComments = ref<Comment[]>([])
 const currentPage = ref(1)
 const pageSize = ref(10)
 const total = ref(0)
-const dateRange = ref<[string, string] | null>(null)
+const dateRange = ref<[string, string] | undefined>(undefined)
 
 const searchForm = ref<CommentQuery>({
   page: 1,
@@ -243,8 +243,8 @@ const fetchComments = async () => {
       page: currentPage.value,
       size: pageSize.value
     })
-    comments.value = res.items
-    total.value = res.total
+    comments.value = res.data.data.results
+    total.value = res.data.data.count
   } catch (error) {
     console.error('获取评论列表失败:', error)
     ElMessage.error('获取评论列表失败')
@@ -261,7 +261,7 @@ const handleSearch = () => {
 
 // 重置搜索
 const handleReset = () => {
-  dateRange.value = null
+  dateRange.value = undefined
   searchForm.value = {
     page: 1,
     size: 10,

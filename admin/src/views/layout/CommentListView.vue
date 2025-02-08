@@ -113,7 +113,7 @@
 import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Delete, Search } from '@element-plus/icons-vue'
-import type { Comment } from '@/types'
+import type { Comment } from '@/types/comment'
 
 const loading = ref(false)
 const comments = ref<Comment[]>([])
@@ -217,59 +217,6 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
-.comment-manage-container {
-  padding: 20px;
-}
-
-.header-actions {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  
-  .left {
-    display: flex;
-    gap: 10px;
-  }
-  
-  .right {
-    display: flex;
-    gap: 10px;
-    
-    .search-input {
-      width: 200px;
-    }
-    
-    .status-select {
-      width: 150px;
-    }
-  }
-}
-
-.comment-content {
-  .content {
-    color: #303133;
-    margin-bottom: 5px;
-  }
-  
-  .article-info {
-    font-size: 12px;
-    color: #909399;
-    
-    .link-type {
-      color: #409eff;
-      text-decoration: none;
-      
-      &:hover {
-        text-decoration: underline;
-      }
-    }
-  }
-}
-
-.pagination-container {
-  margin-top: 20px;
-  display: flex;
-  justify-content: center;
-}
+<style lang="scss">
+@use '@/styles/views/comment/comment-list.scss';
 </style> 

@@ -114,7 +114,7 @@
 import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
-import type { FormInstance, UploadRequestOptions } from 'element-plus'
+import type { FormInstance, UploadRequestOptions, FormRules } from 'element-plus'
 
 const formRef = ref<FormInstance>()
 const submitting = ref(false)
@@ -135,7 +135,7 @@ const form = ref({
 })
 
 // 表单验证规则
-const rules = {
+const rules = ref<FormRules>({
   siteTitle: [
     { required: true, message: '请输入网站标题', trigger: 'blur' },
     { min: 2, max: 50, message: '长度在 2 到 50 个字符', trigger: 'blur' }
@@ -157,7 +157,7 @@ const rules = {
   smtpPassword: [
     { required: true, message: '请输入邮箱密码或授权码', trigger: 'blur' }
   ]
-}
+})
 
 // Logo上传前的验证
 const beforeLogoUpload = (file: File) => {
@@ -215,59 +215,6 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
-.settings-container {
-  padding: 20px;
-}
-
-.section-title {
-  font-size: 16px;
-  font-weight: bold;
-  color: #303133;
-  margin: 20px 0;
-  padding-bottom: 10px;
-  border-bottom: 1px solid #ebeef5;
-}
-
-.avatar-uploader {
-  :deep(.el-upload) {
-    border: 1px dashed #d9d9d9;
-    border-radius: 6px;
-    cursor: pointer;
-    position: relative;
-    overflow: hidden;
-    transition: var(--el-transition-duration-fast);
-    
-    &:hover {
-      border-color: var(--el-color-primary);
-    }
-  }
-}
-
-.avatar-uploader-icon {
-  font-size: 28px;
-  color: #8c939d;
-  width: 178px;
-  height: 50px;
-  text-align: center;
-  line-height: 50px;
-}
-
-.avatar {
-  width: 178px;
-  height: 50px;
-  display: block;
-}
-
-.upload-tip {
-  font-size: 12px;
-  color: #909399;
-  margin-top: 5px;
-}
-
-.form-tip {
-  margin-left: 10px;
-  font-size: 12px;
-  color: #909399;
-}
+<style lang="scss">
+@use '@/styles/views/settings/index.scss';
 </style> 

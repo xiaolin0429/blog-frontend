@@ -37,6 +37,9 @@ export interface Post {
   author_username: string
   created_at: string
   updated_at: string
+  view_count: number
+  comment_count: number
+  like_count: number
   pinned: boolean
   allowComment: boolean
   password: string

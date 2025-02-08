@@ -73,7 +73,7 @@
         <el-table-column prop="email" label="邮箱" min-width="200" />
         <el-table-column prop="role" label="角色" width="100">
           <template #default="{ row }">
-            <el-tag :type="row.role === 'admin' ? 'danger' : ''">
+            <el-tag :type="row.role === 'admin' ? 'danger' : 'info'">
               {{ row.role === 'admin' ? '管理员' : '普通用户' }}
             </el-tag>
           </template>
@@ -178,7 +178,7 @@ import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Delete, Search } from '@element-plus/icons-vue'
 import type { User } from '@/types/user'
-import type { FormInstance } from 'element-plus'
+import type { FormInstance, FormRules } from 'element-plus'
 
 const loading = ref(false)
 const submitting = ref(false)
@@ -206,7 +206,7 @@ const form = ref({
 })
 
 // 表单验证规则
-const rules = {
+const rules = ref<FormRules>({
   nickname: [
     { required: true, message: '请输入昵称', trigger: 'blur' },
     { min: 2, max: 50, message: '长度在 2 到 50 个字符', trigger: 'blur' }
@@ -218,7 +218,7 @@ const rules = {
   role: [
     { required: true, message: '请选择角色', trigger: 'change' }
   ]
-}
+})
 
 // 获取用户列表
 const fetchUsers = async () => {
@@ -267,8 +267,8 @@ const handleEdit = (row: User) => {
   form.value = {
     id: row.id,
     username: row.username,
-    nickname: row.nickname,
-    email: row.email,
+    nickname: row.nickname || '',
+    email: row.email || '',
     role: row.role
   }
   dialogVisible.value = true

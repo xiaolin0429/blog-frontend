@@ -154,8 +154,9 @@
 import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
-import { useUserStore } from '@/store/user'
-import type { FormInstance, UploadRequestOptions } from 'element-plus'
+import { useUserStore } from '@/store/modules/user'
+import type { FormInstance, UploadRequestOptions, FormRules } from 'element-plus'
+import { uploadUserAvatar } from '@/api/user'
 
 const userStore = useUserStore()
 const formRef = ref<FormInstance>()
@@ -195,7 +196,7 @@ const passwordForm = ref({
 })
 
 // 表单验证规则
-const rules = {
+const rules = ref<FormRules>({
   nickname: [
     { required: true, message: '请输入昵称', trigger: 'blur' },
     { min: 2, max: 50, message: '长度在 2 到 50 个字符', trigger: 'blur' }
@@ -213,7 +214,7 @@ const rules = {
   website: [
     { pattern: /^https?:\/\/\S+$/, message: '请输入正确的网站地址', trigger: 'blur' }
   ]
-}
+})
 
 // 密码验证规则
 const passwordRules = {
@@ -261,12 +262,12 @@ const uploadAvatar = async (options: UploadRequestOptions) => {
     const formData = new FormData()
     formData.append('avatar', options.file)
     
-    const res = await uploadAvatar(formData)
-    if (res.code === 200) {
-      userInfo.value.avatar = res.data
+    const res = await uploadUserAvatar(formData)
+    if (res.data.code === 200) {
+      userInfo.value.avatar = res.data.data
       ElMessage.success('头像上传成功')
     } else {
-      ElMessage.error(res.message || '头像上传失败')
+      ElMessage.error(res.data.message || '头像上传失败')
     }
   } catch (error) {
     console.error('头像上传失败:', error)
@@ -295,103 +296,6 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
-.profile-container {
-  padding: 20px;
-}
-
-.profile-card {
-  text-align: center;
-  
-  .avatar-container {
-    margin-bottom: 20px;
-    
-    .avatar-uploader {
-      :deep(.el-upload) {
-        border: 1px dashed #d9d9d9;
-        border-radius: 50%;
-        cursor: pointer;
-        position: relative;
-        overflow: hidden;
-        transition: var(--el-transition-duration-fast);
-        
-        &:hover {
-          border-color: var(--el-color-primary);
-        }
-      }
-    }
-    
-    .avatar-uploader-icon {
-      font-size: 28px;
-      color: #8c939d;
-      width: 120px;
-      height: 120px;
-      line-height: 120px;
-      text-align: center;
-    }
-    
-    .avatar {
-      width: 120px;
-      height: 120px;
-      border-radius: 50%;
-      display: block;
-    }
-    
-    .upload-tip {
-      font-size: 12px;
-      color: #909399;
-      margin-top: 5px;
-    }
-  }
-  
-  .info-container {
-    margin-bottom: 20px;
-    
-    .nickname {
-      font-size: 20px;
-      font-weight: bold;
-      margin: 0 0 5px;
-    }
-    
-    .username {
-      color: #909399;
-      margin: 0 0 5px;
-    }
-    
-    .email {
-      color: #606266;
-      margin: 0;
-    }
-  }
-  
-  .stats-container {
-    display: flex;
-    justify-content: space-around;
-    padding-top: 20px;
-    border-top: 1px solid #ebeef5;
-    
-    .stat-item {
-      .value {
-        font-size: 20px;
-        font-weight: bold;
-        color: #303133;
-      }
-      
-      .label {
-        font-size: 12px;
-        color: #909399;
-      }
-    }
-  }
-}
-
-.password-card {
-  margin-top: 20px;
-}
-
-.form-tip {
-  margin-left: 10px;
-  font-size: 12px;
-  color: #909399;
-}
+<style lang="scss">
+@use '@/styles/views/profile/index.scss';
 </style> 

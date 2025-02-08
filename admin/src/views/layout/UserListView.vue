@@ -301,63 +301,6 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
-.user-manage-container {
-  padding: 20px;
-}
-
-.header-actions {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  
-  .left {
-    display: flex;
-    gap: 10px;
-  }
-  
-  .right {
-    display: flex;
-    gap: 10px;
-    
-    .search-input {
-      width: 200px;
-    }
-    
-    .role-select,
-    .status-select {
-      width: 150px;
-    }
-  }
-}
-
-.user-info {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  
-  .info {
-    .nickname {
-      font-weight: bold;
-      color: #303133;
-    }
-    
-    .username {
-      font-size: 12px;
-      color: #909399;
-    }
-  }
-}
-
-.pagination-container {
-  margin-top: 20px;
-  display: flex;
-  justify-content: center;
-}
-
-.dialog-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-}
+<style lang="scss">
+@use '@/styles/views/user/index.scss';
 </style> 

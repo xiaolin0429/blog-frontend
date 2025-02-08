@@ -84,28 +84,6 @@ onMounted(async () => {
 })
 </script>
 
-<style scoped>
-.home-container {
-  padding: 20px;
-}
-
-.dashboard-card {
-  @apply bg-white dark:bg-gray-800;
-}
-
-.card-header {
-  @apply flex justify-between items-center;
-}
-
-.card-content {
-  @apply flex items-baseline justify-center;
-}
-
-.number {
-  @apply text-4xl font-bold mr-2;
-}
-
-.label {
-  @apply text-gray-500 dark:text-gray-400;
-}
+<style lang="scss">
+@use '@/styles/views/home/index.scss';
 </style> 

@@ -7,6 +7,10 @@ export interface Comment {
     username: string
     nickname?: string
   }
+  post: {
+    id: number
+    title: string
+  }
   post_id: number
   parent_id?: number
   status: 'visible' | 'hidden'

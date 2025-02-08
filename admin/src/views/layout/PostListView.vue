@@ -130,7 +130,8 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Delete, Search } from '@element-plus/icons-vue'
-import type { Post, Category } from '@/types'
+import type { Post } from '@/types/post'
+import type { Category } from '@/types/category'
 
 const router = useRouter()
 const loading = ref(false)
