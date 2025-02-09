@@ -10,9 +10,63 @@
           <div class="content">
             <div class="value">{{ item.value }}</div>
             <div class="label">{{ item.label }}</div>
+            <div class="sub-value">{{ item.subValue }}</div>
           </div>
         </div>
       </el-card>
+    </div>
+
+    <!-- 趋势图表区域 -->
+    <div class="trends-section">
+      <el-row :gutter="20">
+        <el-col :span="12">
+          <el-card class="dark-card" shadow="never">
+            <template #header>
+              <div class="card-header">
+                <span>用户趋势</span>
+              </div>
+            </template>
+            <div class="chart-container">
+              <el-empty v-if="!trends.users.length" description="暂无数据" />
+              <div v-else class="trend-chart">
+                <!-- 这里可以添加图表组件 -->
+                <ul class="trend-list">
+                  <li v-for="item in trends.users" :key="item.date">
+                    <span class="date">{{ item.date }}</span>
+                    <span class="value">总用户: {{ item.total_users }}</span>
+                    <span class="value">活跃: {{ item.active_users }}</span>
+                    <span class="value">新增: {{ item.new_users }}</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </el-card>
+        </el-col>
+        
+        <el-col :span="12">
+          <el-card class="dark-card" shadow="never">
+            <template #header>
+              <div class="card-header">
+                <span>访问趋势</span>
+              </div>
+            </template>
+            <div class="chart-container">
+              <el-empty v-if="!trends.visits.length" description="暂无数据" />
+              <div v-else class="trend-chart">
+                <!-- 这里可以添加图表组件 -->
+                <ul class="trend-list">
+                  <li v-for="item in trends.visits" :key="item.date">
+                    <span class="date">{{ item.date }}</span>
+                    <span class="value">PV: {{ item.pv }}</span>
+                    <span class="value">UV: {{ item.uv }}</span>
+                    <span class="value">IP: {{ item.ip }}</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </el-card>
+        </el-col>
+      </el-row>
     </div>
 
     <!-- 下方左右两栏布局 -->
@@ -75,11 +129,20 @@ const icons = {
 
 // 统计数据
 const statistics = ref([
-  { label: '文章', value: '0', icon: icons.Document },
-  { label: '用户', value: '0', icon: icons.User },
-  { label: '评论', value: '0', icon: icons.Message },
-  { label: '访问量', value: '0', icon: icons.View }
+  { label: '文章', value: '0', subValue: '已发布: 0', icon: icons.Document },
+  { label: '用户', value: '0', subValue: '今日活跃: 0', icon: icons.User },
+  { label: '评论', value: '0', subValue: '待审核: 0', icon: icons.Message },
+  { label: '访问量', value: '0', subValue: '独立访客: 0', icon: icons.View }
 ])
+
+// 趋势数据
+const trends = ref<{
+  users: UserStatistics['trends']
+  visits: VisitStatistics['trends']
+}>({
+  users: [],
+  visits: []
+})
 
 // 快捷访问项
 const quickAccess = ref([
@@ -106,75 +169,76 @@ const notifications = ref<Notification[]>([])
 
 // 加载统计数据
 const loadStatistics = async () => {
+  loading.value = true
   try {
-    loading.value = true
+    // 计算最近7天的日期范围
+    const endDate = new Date()
+    const startDate = new Date()
+    startDate.setDate(startDate.getDate() - 6)
+
+    const params = {
+      startDate: startDate.toISOString().split('T')[0],
+      endDate: endDate.toISOString().split('T')[0]
+    }
+
+    // 并行加载所有统计数据
     const [contentRes, visitRes, userRes] = await Promise.all([
-      getContentStatistics(),
-      getVisitStatistics(),
-      getUserStatistics()
+      getContentStatistics(params),
+      getVisitStatistics(params),
+      getUserStatistics(params)
     ])
 
-    console.log('Raw API responses:', {
-      content: contentRes,
-      visit: visitRes,
-      user: userRes
-    })
-
-    // 验证响应数据
-    const content = contentRes.data?.data
-    const visit = visitRes.data?.data
-    const user = userRes.data?.data
-
-    // 添加详细的数据验证日志
-    console.log('Processed data:', {
-      content,
-      visit,
-      user
-    })
-
-    if (!content?.posts?.total) {
-      throw new Error('内容统计数据获取失败')
-    }
-    if (!visit?.total?.pv) {
-      throw new Error('访问统计数据获取失败')
-    }
-    if (!user?.total?.total_users) {
-      throw new Error('用户统计数据获取失败')
+    // 更新统计卡片数据
+    if (contentRes.data.code === 200) {
+      statistics.value[0].value = contentRes.data.data.posts.total.toString()
+      statistics.value[0].subValue = `已发布: ${contentRes.data.data.posts.published}`
+      statistics.value[2].value = contentRes.data.data.comments.total.toString()
+      statistics.value[2].subValue = `待审核: ${contentRes.data.data.comments.pending}`
     }
 
-    // 更新统计数据
-    statistics.value = [
-      { 
-        label: '文章', 
-        value: content.posts.total.toString(), 
-        icon: icons.Document 
-      },
-      { 
-        label: '用户', 
-        value: user.total.total_users.toString(), 
-        icon: icons.User 
-      },
-      { 
-        label: '评论', 
-        value: content.comments.total.toString(), 
-        icon: icons.Message 
-      },
-      { 
-        label: '访问量', 
-        value: visit.total.pv.toString(), 
-        icon: icons.View 
-      }
-    ]
+    if (userRes.data.code === 200) {
+      statistics.value[1].value = userRes.data.data.total.total_users.toString()
+      statistics.value[1].subValue = `今日活跃: ${userRes.data.data.total.active_users}`
+    }
+
+    if (visitRes.data.code === 200) {
+      statistics.value[3].value = visitRes.data.data.total.pv.toString()
+      statistics.value[3].subValue = `独立访客: ${visitRes.data.data.total.uv}`
+    }
+
+    // 更新趋势数据
+    if (userRes.data.code === 200) {
+      trends.value.users = userRes.data.data.trends.map(item => ({
+        date: item.date,
+        total_users: item.total_users,
+        active_users: item.active_users,
+        new_users: item.new_users
+      }))
+    }
+
+    if (visitRes.data.code === 200) {
+      trends.value.visits = visitRes.data.data.trends.map(item => ({
+        date: item.date,
+        pv: item.pv || 0,
+        uv: item.uv || 0,
+        ip: item.ip || 0
+      }))
+    }
+
   } catch (error) {
     console.error('加载统计数据失败:', error)
-    ElMessage.error(error instanceof Error ? error.message : '加载统计数据失败')
+    ElMessage.error('加载统计数据失败，请稍后重试')
     // 设置默认值
     statistics.value = [
-      { label: '文章', value: '0', icon: icons.Document },
-      { label: '用户', value: '0', icon: icons.User },
-      { label: '评论', value: '0', icon: icons.Message },
-      { label: '访问量', value: '0', icon: icons.View }
+      { label: '文章', value: '0', subValue: '已发布: 0', icon: icons.Document },
+      { label: '用户', value: '0', subValue: '今日活跃: 0', icon: icons.User },
+      { label: '评论', value: '0', subValue: '待审核: 0', icon: icons.Message },
+      { label: '访问量', value: '0', subValue: '独立访客: 0', icon: icons.View }
     ]
+    trends.value = {
+      users: [],
+      visits: []
+    }
   } finally {
     loading.value = false
   }
@@ -185,12 +249,215 @@ const handleQuickAccess = (item: any) => {
   router.push(item.path)
 }
 
-// 初始化
+// 页面加载时获取数据
 onMounted(() => {
   loadStatistics()
 })
 </script>
 
 <style lang="scss" scoped>
-@use '@/styles/views/dashboard/index.scss';
+.dashboard {
+  padding: 20px;
+  
+  .data-statistics {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    margin-bottom: 20px;
+
+    .statistic-item {
+      display: flex;
+      align-items: center;
+      padding: 10px;
+
+      .icon {
+        margin-right: 16px;
+        color: var(--el-color-primary);
+      }
+
+      .content {
+        flex: 1;
+
+        .value {
+          font-size: 24px;
+          font-weight: bold;
+          color: var(--el-text-color-primary);
+          line-height: 1.2;
+        }
+
+        .label {
+          font-size: 14px;
+          color: var(--el-text-color-secondary);
+          margin: 4px 0;
+        }
+
+        .sub-value {
+          font-size: 12px;
+          color: var(--el-text-color-secondary);
+        }
+      }
+    }
+  }
+
+  .trends-section {
+    margin-bottom: 20px;
+    height: 400px;
+
+    .el-row {
+      height: 100%;
+      
+      .el-col {
+        height: 100%;
+        
+        .el-card {
+          height: 100%;
+          display: flex;
+          flex-direction: column;
+          
+          .el-card__header {
+            flex-shrink: 0;
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--el-border-color-lighter);
+          }
+          
+          .el-card__body {
+            flex: 1;
+            overflow: hidden;
+            padding: 0;
+          }
+        }
+      }
+    }
+
+    .card-header {
+      font-size: 16px;
+      font-weight: bold;
+      margin: 0;
+    }
+
+    .chart-container {
+      height: 100%;
+      padding: 15px 20px;
+      overflow: auto;
+
+      .el-empty {
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+    }
+
+    .trend-chart {
+      height: 100%;
+
+      .trend-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+
+        li {
+          display: flex;
+          align-items: center;
+          padding: 10px 0;
+          border-bottom: 1px solid var(--el-border-color-lighter);
+
+          &:last-child {
+            border-bottom: none;
+          }
+
+          .date {
+            width: 100px;
+            color: var(--el-text-color-secondary);
+            font-size: 14px;
+          }
+
+          .value {
+            margin-left: 20px;
+            color: var(--el-text-color-primary);
+            font-size: 14px;
+          }
+        }
+      }
+    }
+  }
+
+  .bottom-section {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+
+    h2 {
+      font-size: 18px;
+      margin-bottom: 16px;
+      color: var(--el-text-color-primary);
+    }
+
+    .quick-access {
+      .quick-access-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+      }
+
+      .quick-access-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        background-color: var(--el-bg-color);
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+
+        &:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+        }
+
+        .icon {
+          font-size: 24px;
+          margin-bottom: 8px;
+          color: var(--el-color-primary);
+        }
+
+        .title {
+          font-size: 14px;
+          color: var(--el-text-color-primary);
+        }
+      }
+    }
+
+    .notification-area {
+      .notice-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
+
+        .title {
+          font-size: 14px;
+          color: var(--el-text-color-primary);
+        }
+
+        .time {
+          font-size: 12px;
+          color: var(--el-text-color-secondary);
+        }
+      }
+    }
+  }
+}
+
+.dark-card {
+  background-color: var(--el-bg-color);
+  border: 1px solid var(--el-border-color-lighter);
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+  }
+}
 </style> 

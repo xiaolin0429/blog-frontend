@@ -1,8 +1,10 @@
-import type { AxiosResponse } from 'axios'
-import type { ApiResponse } from '@/types/api'
 import request from '@/utils/request'
 
-// 内容统计响应接口
+export interface StatisticsParams {
+  startDate?: string
+  endDate?: string
+}
+
 export interface ContentStatistics {
   posts: {
     total: number
@@ -13,7 +15,6 @@ export interface ContentStatistics {
       id: number
       username: string
       postCount: number
-      totalViews: number
     }>
   }
   comments: {
@@ -28,7 +29,6 @@ export interface ContentStatistics {
       id: number
       name: string
       postCount: number
-      totalViews: number
     }>
   }
   tags: {
@@ -37,12 +37,10 @@ export interface ContentStatistics {
       id: number
       name: string
       postCount: number
-      totalViews: number
     }>
   }
 }
 
-// 访问统计响应接口
 export interface VisitStatistics {
   total: {
     pv: number
@@ -57,7 +55,6 @@ export interface VisitStatistics {
   }>
 }
 
-// 用户统计响应接口
 export interface UserStatistics {
   total: {
     total_users: number
@@ -72,17 +69,35 @@ export interface UserStatistics {
   }>
 }
 
-// 获取内容统计
-export function getContentStatistics(params?: { startDate?: string; endDate?: string }) {
-  return request.get<ApiResponse<ContentStatistics>>('/statistics/content', { params })
+export interface ApiResponse<T> {
+  code: number
+  message: string
+  data: T
 }
 
-// 获取访问统计
-export function getVisitStatistics(params?: { startDate?: string; endDate?: string }) {
-  return request.get<ApiResponse<VisitStatistics>>('/statistics/visits', { params })
+// 获取内容统计数据
+export function getContentStatistics(params?: StatisticsParams) {
+  return request<ApiResponse<ContentStatistics>>({
+    url: '/statistics/content/',
+    method: 'get',
+    params
+  })
 }
 
-// 获取用户统计
-export function getUserStatistics(params?: { startDate?: string; endDate?: string }) {
-  return request.get<ApiResponse<UserStatistics>>('/statistics/users', { params })
+// 获取访问统计数据
+export function getVisitStatistics(params?: StatisticsParams) {
+  return request<ApiResponse<VisitStatistics>>({
+    url: '/statistics/visits/',
+    method: 'get',
+    params
+  })
+}
+
+// 获取用户统计数据
+export function getUserStatistics(params?: StatisticsParams) {
+  return request<ApiResponse<UserStatistics>>({
+    url: '/statistics/users/',
+    method: 'get',
+    params
+  })
 } 
