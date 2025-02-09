@@ -1,9 +1,10 @@
 import axios from 'axios'
-import type { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
+import type { AxiosInstance, AxiosResponse } from 'axios'
 import type { ApiResponse } from '@/types/api'
 import { ElMessage } from 'element-plus'
 import router from '@/router'
 import { refreshToken } from '@/api/auth'
+import { getToken } from '@/utils/auth/token'
 
 // 创建axios实例
 const service: AxiosInstance = axios.create({
@@ -23,8 +24,8 @@ let retryQueue: ((token: string) => void)[] = []
 // 请求拦截器
 service.interceptors.request.use(
   (config) => {
-    // 从localStorage获取token
-    const token = localStorage.getItem('access_token')
+    // 使用 getToken 工具函数获取 token
+    const token = getToken()
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`
       // 打印认证信息（注意隐藏敏感信息）
@@ -33,18 +34,26 @@ service.interceptors.request.use(
         'Authorization': config.headers['Authorization']?.substring(0, 20) + '...'
       })
     } else {
-      console.warn('No access token found in localStorage')
+      console.warn('No access token found')
     }
     
     // 添加时区信息
     config.headers['X-Timezone'] = Intl.DateTimeFormat().resolvedOptions().timeZone
     
     // 打印请求信息，方便调试
-    console.log('Request:', {
-      url: config.url,
+    console.log('Request details:', {
+      url: `${config.baseURL || ''}${config.url || ''}`,
       method: config.method,
-      data: config.data,
-      headers: config.headers
+      data: config.data ? {
+        ...config.data,
+        password: config.data.password ? '******' : undefined
+      } : undefined,
+      headers: {
+        ...config.headers,
+        'Authorization': typeof config.headers['Authorization'] === 'string' 
+          ? config.headers['Authorization'].substring(0, 20) + '...'
+          : config.headers['Authorization']
+      }
     })
     
     return config
@@ -61,7 +70,7 @@ service.interceptors.response.use(
     const { code, message, data } = response.data
     
     // 打印响应信息，方便调试
-    console.log('Response:', {
+    console.log('Response details:', {
       url: response.config.url,
       status: response.status,
       data: response.data,
@@ -97,19 +106,25 @@ service.interceptors.response.use(
   },
   async (error) => {
     // 打印详细错误信息
-    console.error('Response error:', {
+    console.error('Response error details:', {
       config: {
-        url: error.config?.url,
+        url: error.config?.baseURL + error.config?.url,
         method: error.config?.method,
-        data: error.config?.data,
-        headers: error.config?.headers
+        data: error.config?.data ? {
+          ...error.config.data,
+          password: error.config.data.password ? '******' : undefined
+        } : undefined,
+        headers: {
+          ...error.config?.headers,
+          'Authorization': error.config?.headers?.Authorization?.substring(0, 20) + '...'
+        }
       },
-      response: {
-        status: error.response?.status,
-        statusText: error.response?.statusText,
-        data: error.response?.data,
-        headers: error.response?.headers
-      },
+      response: error.response ? {
+        status: error.response.status,
+        statusText: error.response.statusText,
+        data: error.response.data,
+        headers: error.response.headers
+      } : 'No response',
       message: error.message
     })
     

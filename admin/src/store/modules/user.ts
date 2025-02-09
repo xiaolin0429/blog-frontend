@@ -22,7 +22,19 @@ export const useUserStore = defineStore('user', () => {
   const login = async (data: LoginRequest) => {
     try {
       loading.value = true
+      console.log('Login request data:', {
+        ...data,
+        password: '******' // 隐藏密码
+      })
       const response = await loginApi(data)
+      console.log('Login response:', {
+        ...response.data,
+        data: {
+          ...response.data.data,
+          access: response.data.data.access.substring(0, 10) + '...',
+          refresh: response.data.data.refresh.substring(0, 10) + '...',
+        }
+      })
       const { access, refresh, user } = response.data.data
       setToken(access)
       setRefreshToken(refresh)

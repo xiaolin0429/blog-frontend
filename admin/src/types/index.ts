@@ -1,7 +1,7 @@
 export * from './trash'
 
 // 用户角色类型
-export type UserRole = 'admin' | 'user'
+export type UserRole = 'superadmin' | 'admin' | 'user'
 
 // 用户状态类型
 export type UserStatus = 'active' | 'disabled'
@@ -31,20 +31,23 @@ export interface UserQuery {
 }
 
 // 用户创建参数
-export interface UserCreate {
+export interface CreateUserParams {
   username: string
+  password: string
   nickname: string
   email: string
-  password: string
-  role?: UserRole
+  role: UserRole
 }
 
 // 用户更新参数
-export interface UserUpdate {
-  nickname?: string
+export interface UpdateUserParams {
   email?: string
-  role?: UserRole
-  status?: UserStatus
+  nickname?: string
+  bio?: string
+  is_active?: boolean
+  is_staff?: boolean
+  is_superuser?: boolean
+  avatar?: File
 }
 
 // 分页响应类型
