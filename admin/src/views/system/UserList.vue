@@ -207,7 +207,7 @@ import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Delete, Search, Plus } from '@element-plus/icons-vue'
 import type { FormInstance, FormRules } from 'element-plus'
-import type { User, UserQuery, CreateUserParams, UpdateUserParams, UserStatus, UserRole } from '@/types/user'
+import type { User, UserQuery, UpdateUserParams, UserStatus, UserRole } from '@/types/user'
 import {
   getUsers,
   createUser,

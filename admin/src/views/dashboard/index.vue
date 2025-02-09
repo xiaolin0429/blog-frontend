@@ -109,7 +109,7 @@ import { ref, onMounted, markRaw } from 'vue'
 import { useRouter } from 'vue-router'
 import { Document, User, Setting, Upload, Edit, Message, View, Link } from '@element-plus/icons-vue'
 import { getContentStatistics, getVisitStatistics, getUserStatistics } from '@/api/statistics'
-import type { ContentStatistics, VisitStatistics, UserStatistics } from '@/api/statistics'
+import type { VisitStatistics, UserStatistics } from '@/api/statistics'
 import { ElMessage } from 'element-plus'
 
 const router = useRouter()

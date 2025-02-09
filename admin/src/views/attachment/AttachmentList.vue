@@ -269,8 +269,7 @@ import { ref, onMounted, onBeforeUnmount, watch, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { 
   Delete, Upload, Document, Picture, VideoPlay, Edit, 
-  Grid, List, Loading, Search, ArrowUp, ArrowDown,
-  CaretRight, CaretBottom
+  Grid, List, Loading, Search, ArrowUp, ArrowDown
 } from '@element-plus/icons-vue'
 import type { FileInfo, FileQuery, FileType } from '@/types/storage'
 import { getFiles, deleteFile, uploadFile, renameFile } from '@/api/storage'
