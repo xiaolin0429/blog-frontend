@@ -121,7 +121,7 @@
           <el-table-column prop="upload_time" label="上传时间" width="180">
             <template #default="{ row }">
               {{ new Date(row.upload_time).toLocaleString() }}
-            </template>
+      </template>
           </el-table-column>
           
           <el-table-column label="操作" width="180" fixed="right">
@@ -156,7 +156,7 @@
         @current-change="handlePageChange"
       />
     </div>
-
+    
     <!-- 图片预览组件 -->
     <el-image-viewer
       v-if="previewVisible && previewType === 'image'"
@@ -180,22 +180,22 @@
           <span class="dialog-title">{{ currentFile?.original_name || currentFile?.name }}</span>
           <div class="dialog-actions">
             <div v-if="showSearch" class="search-toolbar">
-              <el-input
-                v-model="searchKeyword"
+            <el-input
+              v-model="searchKeyword"
                 placeholder="搜索文本..."
-                clearable
+              clearable
                 @clear="clearSearch"
                 @keyup.enter="searchText"
-              >
-                <template #prefix>
-                  <el-icon><Search /></el-icon>
-                </template>
+            >
+              <template #prefix>
+                <el-icon><Search /></el-icon>
+              </template>
                 <template #append>
                   <el-button @click="searchText">
                     搜索
                   </el-button>
                 </template>
-              </el-input>
+            </el-input>
               <el-button-group class="search-actions" v-if="searchResults.length > 0">
                 <el-button @click="prevSearchResult">
                   <el-icon><ArrowUp /></el-icon>
@@ -355,7 +355,7 @@ const processedContent = computed(() => {
         return textContent.value
       }
     }
-    case 'json':
+      case 'json':
       try {
         const parsed = JSON.parse(textContent.value)
         const formatted = JSON.stringify(parsed, null, 2)
@@ -369,7 +369,7 @@ const processedContent = computed(() => {
       try {
         const ext = currentFile.value?.name.split('.').pop()?.toLowerCase() || ''
         const language = getLanguageFromExt(ext)
-        const highlighted = language ? 
+    const highlighted = language ? 
           hljs.highlight(textContent.value, { language }).value : 
           hljs.highlightAuto(textContent.value).value
         return addLineNumbers(addCodeFolding(highlighted))
@@ -767,13 +767,13 @@ const handleRename = async (file: FileInfo) => {
         ElMessage.error(response.data.message || '重命名失败')
       }
     }
-  } catch (error) {
+    } catch (error) {
     if (error !== 'cancel') {
       console.error('重命名失败:', error)
       ElMessage.error('重命名失败')
     }
-  } finally {
-    loading.value = false
+    } finally {
+      loading.value = false
   }
 }
 
@@ -1043,7 +1043,7 @@ const handlePreview = async (file: FileInfo) => {
     window.open(file.url, '_blank')
     return
   }
-
+  
   previewType.value = type
   previewVisible.value = true
 

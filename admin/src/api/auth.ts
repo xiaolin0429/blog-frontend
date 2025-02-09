@@ -48,7 +48,7 @@ export function login(data: LoginRequest): Promise<AxiosResponse<ApiResponse<Log
 
 // 获取个人信息
 export function getUserInfo(): Promise<AxiosResponse<ApiResponse<UserInfo>>> {
-  return request.get<ApiResponse<UserInfo>>('/user/me')
+  return request.get<ApiResponse<UserInfo>>('/user/me/')
 }
 
 // 更新个人信息

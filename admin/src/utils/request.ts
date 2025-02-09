@@ -4,6 +4,7 @@ import type { ApiResponse } from '@/types/api'
 import { ElMessage } from 'element-plus'
 import router from '@/router'
 import { refreshToken } from '@/api/auth'
+import { getToken } from '@/utils/auth/token'
 
 // 创建axios实例
 const service: AxiosInstance = axios.create({
@@ -23,8 +24,8 @@ let retryQueue: ((token: string) => void)[] = []
 // 请求拦截器
 service.interceptors.request.use(
   (config) => {
-    // 从localStorage获取token
-    const token = localStorage.getItem('access_token')
+    // 使用 getToken 工具函数获取 token
+    const token = getToken()
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`
       // 打印认证信息（注意隐藏敏感信息）
@@ -33,7 +34,7 @@ service.interceptors.request.use(
         'Authorization': config.headers['Authorization']?.substring(0, 20) + '...'
       })
     } else {
-      console.warn('No access token found in localStorage')
+      console.warn('No access token found')
     }
     
     // 添加时区信息

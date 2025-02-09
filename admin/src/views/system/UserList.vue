@@ -53,7 +53,7 @@
             
             <el-button type="primary" :icon="Plus" @click="handleCreate">
               新建用户
-            </el-button>
+          </el-button>
           </div>
         </div>
       </template>
@@ -527,58 +527,6 @@ onMounted(() => {
 })
 </script>
 
-<style lang="scss" scoped>
-.user-container {
-  padding: 1rem;
-  
-  .card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    
-    .left {
-      display: flex;
-      gap: 0.5rem;
-    }
-    
-    .right {
-      display: flex;
-      gap: 0.5rem;
-      align-items: center;
-      
-      .search-input {
-        width: 240px;
-      }
-      
-      .role-select,
-      .status-select {
-        width: 120px;
-      }
-    }
-  }
-  
-  .user-info {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    
-    .info {
-      .nickname {
-        font-weight: bold;
-        color: var(--el-text-color-primary);
-      }
-      
-      .username {
-        font-size: 12px;
-        color: var(--el-text-color-secondary);
-      }
-    }
-  }
-  
-  .pagination-container {
-    margin-top: 1rem;
-    display: flex;
-    justify-content: flex-end;
-  }
-}
+<style lang="scss">
+@use '@/styles/views/system/user-list.scss';
 </style> 
