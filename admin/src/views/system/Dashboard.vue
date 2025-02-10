@@ -21,13 +21,17 @@
         <el-col :span="8">
           <div class="info-item">
             <div class="label">运行时间</div>
-            <div class="value">{{ formatUptime(overview.system_info?.start_time) }}</div>
+            <div class="value">{{ formatUptime(overview.system_info?.uptime) }}</div>
           </div>
         </el-col>
         <el-col :span="8">
           <div class="info-item">
-            <div class="label">Python版本</div>
-            <div class="value">{{ overview.system_info?.python_version || '-' }}</div>
+            <div class="label">系统状态</div>
+            <div class="value">
+              <el-tag :type="overview.system_info?.status === 'running' ? 'success' : 'warning'">
+                {{ overview.system_info?.status === 'running' ? '运行中' : '未知' }}
+              </el-tag>
+            </div>
           </div>
         </el-col>
       </el-row>
@@ -36,7 +40,7 @@
         <el-col :span="8">
           <el-progress
             type="dashboard"
-            :percentage="Math.round(overview.system_info?.cpu_usage?.percent || 0)"
+            :percentage="Math.round(overview.system_info?.system_load?.cpu || 0)"
             :color="getCpuColor"
           >
             <template #default="{ percentage }">
@@ -50,7 +54,7 @@
         <el-col :span="8">
           <el-progress
             type="dashboard"
-            :percentage="Math.round(overview.system_info?.memory_usage?.percent || 0)"
+            :percentage="Math.round(overview.system_info?.system_load?.memory || 0)"
             :color="getMemoryColor"
           >
             <template #default="{ percentage }">
@@ -64,7 +68,7 @@
         <el-col :span="8">
           <el-progress
             type="dashboard"
-            :percentage="Math.round(overview.system_info?.disk_usage?.percent || 0)"
+            :percentage="Math.round(overview.system_info?.system_load?.disk || 0)"
             :color="getDiskColor"
           >
             <template #default="{ percentage }">
@@ -182,24 +186,12 @@ const timer = ref<number>()
 const overview = ref<Overview>({
   system_info: {
     version: '',
-    start_time: 0,
-    python_version: '',
-    cpu_usage: {
-      percent: 0,
-      cores: 0,
-      physical_cores: 0
-    },
-    memory_usage: {
-      percent: 0,
-      total: 0,
-      available: 0,
-      used: 0
-    },
-    disk_usage: {
-      percent: 0,
-      total: 0,
-      used: 0,
-      free: 0
+    status: 'unknown',
+    uptime: 0,
+    system_load: {
+      cpu: 0,
+      memory: 0,
+      disk: 0
     },
     timestamp: 0
   },
@@ -255,12 +247,10 @@ const stopPolling = () => {
 }
 
 // 格式化运行时间
-const formatUptime = (startTime: number) => {
-  if (!startTime) return '-'
-  const now = dayjs()
-  const start = dayjs(startTime * 1000)
-  const diff = dayjs.duration(now.diff(start))
-  return `${diff.days()}天${diff.hours()}小时${diff.minutes()}分钟`
+const formatUptime = (uptime: number) => {
+  if (!uptime) return '-'
+  const duration = dayjs.duration(uptime * 1000)
+  return `${duration.days()}天${duration.hours()}小时${duration.minutes()}分钟`
 }
 
 // 格式化日期
