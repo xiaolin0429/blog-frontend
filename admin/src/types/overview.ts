@@ -1,24 +1,12 @@
 // 系统信息
 export interface SystemInfo {
   version: string
-  start_time: number
-  python_version: string
-  cpu_usage: {
-    percent: number
-    cores: number
-    physical_cores: number
-  }
-  memory_usage: {
-    percent: number
-    total: number
-    available: number
-    used: number
-  }
-  disk_usage: {
-    percent: number
-    total: number
-    used: number
-    free: number
+  status: 'running' | 'unknown'
+  uptime: number
+  system_load: {
+    cpu: number
+    memory: number
+    disk: number
   }
   timestamp: number
 }
@@ -50,7 +38,7 @@ export interface StorageStats {
 }
 
 // 最近活动
-export interface RecentActivity {
+export interface RecentActivities {
   recent_posts: Array<{
     id: number
     title: string
@@ -74,5 +62,5 @@ export interface Overview {
   system_info: SystemInfo
   content_stats: ContentStats
   storage_stats: StorageStats
-  recent_activities: RecentActivity
+  recent_activities: RecentActivities
 } 
