@@ -1,4 +1,5 @@
 export * from './trash'
+export * from './backup'
 
 // 用户角色类型
 export type UserRole = 'superadmin' | 'admin' | 'user'
