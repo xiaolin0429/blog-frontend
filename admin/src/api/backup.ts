@@ -1,5 +1,5 @@
 import request from '@/utils/request'
-import type { BackupQuery, CreateBackupRequest, UpdateBackupConfigRequest } from '../types/backup'
+import type { BackupQuery, CreateBackupRequest, UpdateBackupConfigRequest } from '@/types'
 import type { PaginatedResponse } from '../types/api'
 
 // 获取备份列表
