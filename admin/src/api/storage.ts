@@ -14,7 +14,7 @@ export function uploadFile(params: UploadParams): Promise<AxiosResponse<ApiRespo
     formData.append('path', params.path)
   }
   
-  return request.post<ApiResponse<UploadResponse>>('/storage/upload', formData, {
+  return request.post<ApiResponse<UploadResponse>>('/storage/upload/', formData, {
     headers: {
       'Content-Type': 'multipart/form-data'
     }
