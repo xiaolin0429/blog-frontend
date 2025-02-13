@@ -5,6 +5,7 @@ import { ElMessage } from 'element-plus'
 import router from '@/router'
 import { refreshToken } from '@/api/auth'
 import { getToken } from '@/utils/auth/token'
+import { useUserStore } from '@/store/modules/user'
 
 // 创建axios实例
 const service: AxiosInstance = axios.create({
@@ -77,14 +78,19 @@ service.interceptors.response.use(
       headers: response.headers
     })
     
+    // 对于 204 No Content 状态码，直接返回响应
+    if (response.status === 204) {
+      return response
+    }
+    
     // 处理业务错误
     if (code && code !== 200 && code !== 201 && code !== 204) {
       // 处理包含详细错误信息的情况
       let errorMessage = message
-      if (data?.errors) {
+      if (data) {
         // 收集所有错误信息
-        const errors = Object.entries(data.errors)
-          .map(([field, msgs]) => `${field}: ${Array.isArray(msgs) ? msgs[0] : msgs}`)
+        const errors = Object.entries(data)
+          .map(([field, msgs]) => `${field}: ${Array.isArray(msgs) ? msgs.join(', ') : msgs}`)
           .filter(msg => msg)
         if (errors.length > 0) {
           errorMessage = errors.join('; ')
@@ -100,6 +106,11 @@ service.interceptors.response.use(
       
       ElMessage.error(errorMessage || '操作失败')
       return Promise.reject(new Error(errorMessage || '操作失败'))
+    }
+    
+    // 对于 201 Created 状态码，直接返回响应
+    if (response.status === 201) {
+      return response
     }
     
     return response
@@ -128,72 +139,50 @@ service.interceptors.response.use(
       message: error.message
     })
     
-    const { config, response } = error
-    
-    // 如果是401错误，且不是刷新token的请求
-    if (response?.status === 401 && !config.url.includes('/auth/refresh/')) {
-      if (!isRefreshing) {
-        isRefreshing = true
-        try {
-          // 尝试刷新token
-          const refresh = localStorage.getItem('refresh_token')
-          if (!refresh) {
-            throw new Error('No refresh token')
-          }
-          const response = await refreshToken({ refresh })
-          const newToken = response.data.data.access
-          // 更新token
-          localStorage.setItem('access_token', newToken)
-          // 重试队列中的请求
-          retryQueue.forEach(cb => cb(newToken))
-          retryQueue = []
-          // 重试当前请求
-          config.headers['Authorization'] = `Bearer ${newToken}`
-          return service(config)
-        } catch (err) {
-          console.error('Token refresh failed:', err)
-          // 刷新失败，清除token并跳转到登录页
-          localStorage.removeItem('access_token')
-          localStorage.removeItem('refresh_token')
-          router.push('/login')
-          return Promise.reject(error)
-        } finally {
-          isRefreshing = false
-        }
-      } else {
-        // 将请求加入重试队列
-        return new Promise(resolve => {
-          retryQueue.push((token: string) => {
-            config.headers['Authorization'] = `Bearer ${token}`
-            resolve(service(config))
-          })
-        })
-      }
-    }
-
-    // 统一错误处理
+    const { response } = error
     let message = '请求失败'
-    if (response?.data?.message) {
-      message = response.data.message
-    } else if (response?.status === 403) {
-      message = '禁止访问'
-    } else if (response?.status === 404) {
-      message = '请求的资源不存在'
-    } else if (response?.status === 429) {
-      message = '请求过于频繁，请稍后再试'
-    } else if (response?.status === 500) {
-      message = '服务器错误'
-    } else if (!response) {
-      message = '网络错误，请检查网络连接'
-    }
 
-    // 如果是400错误，尝试获取更详细的错误信息
-    if (response?.status === 400 && response?.data?.errors) {
-      const errors = Object.entries(response.data.errors)
-        .map(([field, msgs]) => `${field}: ${Array.isArray(msgs) ? msgs[0] : msgs}`)
+    // 处理包含详细错误信息的情况
+    if (response?.data?.data) {
+      const errors = Object.entries(response.data.data)
+        .map(([field, msgs]) => `${field}: ${Array.isArray(msgs) ? msgs.join(', ') : msgs}`)
         .filter(msg => msg)
       if (errors.length > 0) {
         message = errors.join('; ')
+      } else {
+        message = response.data.message || message
+      }
+    } else if (response?.data?.message) {
+      message = response.data.message
+    } else {
+      // 处理HTTP错误
+      switch (response?.status) {
+        case 400:
+          message = '请求参数错误'
+          break
+        case 401:
+          message = '未登录或登录已过期'
+          // 清除用户信息并跳转到登录页
+          const userStore = useUserStore()
+          await userStore.logout()
+          router.push('/login')
+          break
+        case 403:
+          message = '没有权限执行此操作'
+          break
+        case 404:
+          message = '请求的资源不存在'
+          break
+        case 429:
+          message = '请求过于频繁，请稍后再试'
+          break
+        case 500:
+          message = '服务器错误'
+          break
+        default:
+          if (!response) {
+            message = '网络错误，请检查网络连接'
+          }
       }
     }
 

@@ -272,23 +272,26 @@ const formatFileSize = (size: number) => {
 
 // 获取CPU使用率颜色
 const getCpuColor = (percentage: number) => {
-  if (percentage < 60) return '#67C23A'
-  if (percentage < 80) return '#E6A23C'
-  return '#F56C6C'
+  if (percentage < 50) return '#67C23A'  // 绿色
+  if (percentage < 70) return '#E6A23C'  // 黄色
+  if (percentage < 90) return '#F56C6C'  // 红色
+  return '#F56C6C'  // 深红色
 }
 
 // 获取内存使用率颜色
 const getMemoryColor = (percentage: number) => {
-  if (percentage < 70) return '#67C23A'
-  if (percentage < 85) return '#E6A23C'
-  return '#F56C6C'
+  if (percentage < 60) return '#67C23A'  // 绿色
+  if (percentage < 75) return '#E6A23C'  // 黄色
+  if (percentage < 85) return '#F56C6C'  // 红色
+  return '#F56C6C'  // 深红色
 }
 
 // 获取磁盘使用率颜色
 const getDiskColor = (percentage: number) => {
-  if (percentage < 75) return '#67C23A'
-  if (percentage < 90) return '#E6A23C'
-  return '#F56C6C'
+  if (percentage < 70) return '#67C23A'  // 绿色
+  if (percentage < 85) return '#E6A23C'  // 黄色
+  if (percentage < 95) return '#F56C6C'  // 红色
+  return '#F56C6C'  // 深红色
 }
 
 // 获取状态类型

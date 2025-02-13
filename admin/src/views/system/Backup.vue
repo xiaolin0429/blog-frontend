@@ -282,6 +282,7 @@ import {
   testBackupConfig
 } from '@/api/backup'
 import dayjs from 'dayjs'
+import { getToken } from '@/utils/auth/token'
 
 // 查询参数
 const queryParams = ref<BackupQuery>({
@@ -476,7 +477,7 @@ const submitCreateBackup = async () => {
     creating.value = true
     
     const response = await createBackup(createForm.value)
-    if (response.status === 200) {
+    if (response.status === 200 || response.status === 201) {
       ElMessage.success('创建备份任务成功')
       createDialogVisible.value = false
       fetchBackupList()
@@ -494,7 +495,49 @@ const submitCreateBackup = async () => {
 // 处理下载备份
 const handleDownload = async (row: any) => {
   try {
-    window.open(`/api/v1/backup/backups/${row.id}/download/`)
+    const token = getToken()
+    if (!token) {
+      throw new Error('未登录')
+    }
+    
+    // 创建一个临时的 a 标签来下载文件
+    const link = document.createElement('a')
+    link.href = `/api/v1/backup/backups/${row.id}/download/`
+    // 添加认证头
+    const headers = new Headers()
+    headers.append('Authorization', `Bearer ${token}`)
+    
+    // 使用 fetch 发起请求
+    const response = await fetch(link.href, {
+      headers,
+      credentials: 'include'
+    })
+    
+    if (!response.ok) {
+      throw new Error('下载失败')
+    }
+    
+    // 获取文件名
+    const contentDisposition = response.headers.get('content-disposition')
+    let filename = `backup_${row.id}.zip`
+    if (contentDisposition) {
+      const matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(contentDisposition)
+      if (matches != null && matches[1]) {
+        filename = matches[1].replace(/['"]/g, '')
+      }
+    }
+    
+    // 下载文件
+    const blob = await response.blob()
+    const url = window.URL.createObjectURL(blob)
+    link.href = url
+    link.download = filename
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(url)
+    
+    ElMessage.success('开始下载备份文件')
   } catch (error) {
     console.error('下载备份失败:', error)
     ElMessage.error('下载备份失败')
@@ -543,11 +586,11 @@ const handleDelete = async (row: any) => {
     )
     
     const response = await deleteBackup(row.id)
-    if (response.status === 200) {
+    if (response.status === 200 || response.status === 204) {
       ElMessage.success('删除备份成功')
       fetchBackupList()
     } else {
-      ElMessage.error(response.data.message || '删除备份失败')
+      ElMessage.error(response.data?.message || '删除备份失败')
     }
   } catch (error) {
     if (error !== 'cancel') {
