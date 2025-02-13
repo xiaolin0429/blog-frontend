@@ -2,6 +2,7 @@
 // Vue 相关
 import { ref, onMounted, onBeforeUnmount, computed, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { getToken } from '@/utils/auth/token'
 
 // Element Plus 相关
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -55,6 +56,7 @@ import {
   getAutoSavePost,
   uploadImage
 } from '@/api/post'
+import { uploadFile } from '@/api/storage'
 import { getCategories, quickCreateCategory } from '@/api/category'
 import { getTags, createTag } from '@/api/tag'
 import type { CreatePostRequest, Category, Tag, PostStatus } from '@/types/post'
@@ -84,15 +86,40 @@ const editorConfig = {
   },
   MENU_CONF: {
     uploadImage: {
-      server: '/api/upload/image',
-      fieldName: 'image',
-      maxFileSize: 10 * 1024 * 1024,
+      server: '/api/v1/storage/upload/',
+      fieldName: 'file',
+      maxFileSize: 20 * 1024 * 1024, // 20MB
       maxNumberOfFiles: 10,
-      allowedFileTypes: ['image/*'],
+      allowedFileTypes: [
+        'image/jpeg',
+        'image/png',
+        'image/gif',
+        'image/webp',
+        'image/svg+xml',
+        'image/tiff',
+        'image/bmp',
+        'image/x-icon',
+        'image/heic',
+        'image/heif'
+      ],
       metaWithUrl: true,
-      customInsert(res: any, insertFn: Function) {
+      customInsert: async (res: any, insertFn: Function) => {
         if (res.code === 200) {
-          insertFn(res.data)
+          try {
+            const token = getToken()
+            const response = await fetch(res.data.url, {
+              headers: {
+                'Authorization': `Bearer ${token}`
+              }
+            })
+            if (!response.ok) throw new Error('获取图片失败')
+            const blob = await response.blob()
+            const blobUrl = URL.createObjectURL(blob)
+            insertFn(blobUrl)
+          } catch (error) {
+            console.error('获取图片失败:', error)
+            ElMessage.error('获取图片失败')
+          }
         } else {
           ElMessage.error(res.message || '上传图片失败')
         }
@@ -412,26 +439,46 @@ const handleTagCreate = async (tagName: string) => {
 // 上传封面
 const handleUploadCover = async (options: any) => {
   const formData = new FormData()
-  formData.append('image', options.file)
+  formData.append('file', options.file)
+  
+  // 显示上传进度提示
+  const loadingMessage = ElMessage({
+    message: '正在上传封面...',
+    duration: 0,
+    showClose: true
+  })
   
   try {
-    // 显示上传进度提示
-    ElMessage({
-      message: '正在上传封面...',
-      duration: 0,
-      showClose: true
-    })
-
-    const response = await uploadImage(formData)
+    const response = await uploadFile({ file: options.file })
     
     if (response.data.code === 200) {
-      postForm.value.cover = response.data.data
-      ElMessage.success('封面上传成功')
+      try {
+        const token = getToken()
+        const imageResponse = await fetch(response.data.data.url, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
+        if (!imageResponse.ok) throw new Error('获取封面图片失败')
+        const blob = await imageResponse.blob()
+        const blobUrl = URL.createObjectURL(blob)
+        postForm.value.cover = blobUrl
+        
+        // 关闭加载提示并显示成功消息
+        loadingMessage.close()
+        ElMessage.success('封面上传成功')
+      } catch (error) {
+        console.error('获取封面图片失败:', error)
+        loadingMessage.close()
+        ElMessage.error('获取封面图片失败')
+      }
     } else {
+      loadingMessage.close()
       ElMessage.error(response.data.message || '上传封面失败')
     }
   } catch (error) {
     console.error('上传封面失败:', error)
+    loadingMessage.close()
     ElMessage.error('上传封面失败')
   }
 }
@@ -737,6 +784,18 @@ onBeforeUnmount(() => {
   
   // 清理超过24小时的草稿
   cleanupDrafts()
+  
+  // 清理编辑器中的 Blob URLs
+  const content = editor.value?.getHtml() || ''
+  const blobUrls = content.match(/blob:http[^"')]+/g) || []
+  blobUrls.forEach(url => {
+    URL.revokeObjectURL(url)
+  })
+  
+  // 清理封面图片的 Blob URL
+  if (postForm.value.cover?.startsWith('blob:')) {
+    URL.revokeObjectURL(postForm.value.cover)
+  }
 })
 
 // 生命周期钩子
@@ -1122,4 +1181,158 @@ const formatCategories = computed(() => {
 
 <style lang="scss">
 @use '@/styles/views/post/post-edit.scss';
+
+// 深色模式下的编辑器样式
+:root[data-theme='dark'] {
+  .w-e-text-container {
+    background-color: var(--el-bg-color) !important;
+    
+    [data-slate-editor] {
+      color: var(--el-text-color-primary) !important;
+    }
+  }
+  
+  .w-e-toolbar {
+    background-color: var(--el-bg-color-overlay) !important;
+    border-bottom: 1px solid var(--el-border-color) !important;
+    
+    .w-e-bar-item {
+      .w-e-bar-item-content {
+        &:hover {
+          background-color: var(--el-fill-color-light) !important;
+        }
+      }
+    }
+  }
+  
+  // 代码块样式
+  pre {
+    background-color: var(--el-bg-color-overlay) !important;
+    border: 1px solid var(--el-border-color) !important;
+    
+    code {
+      color: var(--el-text-color-primary) !important;
+      background: none !important;
+    }
+  }
+  
+  // 行内代码样式
+  code {
+    background-color: var(--el-fill-color-light) !important;
+    color: var(--el-text-color-primary) !important;
+    border: 1px solid var(--el-border-color) !important;
+  }
+  
+  // 引用样式
+  blockquote {
+    background-color: var(--el-fill-color-light) !important;
+    border-left: 4px solid var(--el-border-color) !important;
+    color: var(--el-text-color-regular) !important;
+  }
+  
+  // 表格样式
+  table {
+    border-color: var(--el-border-color) !important;
+    
+    th, td {
+      border-color: var(--el-border-color) !important;
+      background-color: var(--el-bg-color) !important;
+    }
+    
+    th {
+      background-color: var(--el-fill-color-light) !important;
+    }
+  }
+
+  // 代码块语言选择器样式
+  .w-e-select-list {
+    background-color: var(--el-bg-color) !important;
+    border-color: var(--el-border-color) !important;
+    color: var(--el-text-color-primary) !important;
+    
+    .w-e-select-list-item {
+      color: var(--el-text-color-primary) !important;
+      background-color: var(--el-bg-color) !important;
+      
+      &:hover {
+        background-color: var(--el-fill-color-light) !important;
+      }
+      
+      &.active {
+        background-color: var(--el-color-primary-light-9) !important;
+        color: var(--el-color-primary) !important;
+      }
+    }
+  }
+  
+  // 代码块工具栏样式
+  .w-e-bar-item-group {
+    .w-e-bar-item-menus {
+      background-color: var(--el-bg-color) !important;
+      border-color: var(--el-border-color) !important;
+      
+      .w-e-bar-item {
+        color: var(--el-text-color-primary) !important;
+        background-color: var(--el-bg-color) !important;
+        
+        &:hover {
+          background-color: var(--el-fill-color-light) !important;
+        }
+      }
+    }
+  }
+  
+  // 语言选择下拉框样式
+  .w-e-drop-panel {
+    background-color: var(--el-bg-color) !important;
+    border-color: var(--el-border-color) !important;
+    box-shadow: var(--el-box-shadow-light) !important;
+    
+    .w-e-panel-content-color {
+      .w-e-panel-tab-content {
+        background-color: var(--el-bg-color) !important;
+        
+        .w-e-select-list {
+          background-color: var(--el-bg-color) !important;
+          
+          .w-e-select-list-item {
+            color: var(--el-text-color-primary) !important;
+            background-color: var(--el-bg-color) !important;
+            
+            &:hover {
+              background-color: var(--el-fill-color-light) !important;
+            }
+            
+            &.active {
+              background-color: var(--el-color-primary-light-9) !important;
+              color: var(--el-color-primary) !important;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // 代码语言选择按钮样式
+  .w-e-select-button {
+    background-color: var(--el-bg-color) !important;
+    border-color: var(--el-border-color) !important;
+    color: var(--el-text-color-primary) !important;
+
+    &:hover {
+      background-color: var(--el-fill-color-light) !important;
+    }
+  }
+
+  // 代码块选择器按钮样式
+  .w-e-bar-item button {
+    background-color: var(--el-bg-color) !important;
+    border-color: var(--el-border-color) !important;
+    color: var(--el-text-color-primary) !important;
+
+    &:hover {
+      background-color: var(--el-fill-color-light) !important;
+    }
+  }
+}
 </style> 

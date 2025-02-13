@@ -105,7 +105,14 @@ export function getRelatedPosts(id: number): Promise<AxiosResponse<ApiResponse<R
 
 // 文件上传 API
 export function uploadImage(data: FormData): Promise<AxiosResponse<ApiResponse<string>>> {
-  return request.post<ApiResponse<string>>('/upload/image', data, {
+  // 确保文件参数名为 file
+  const formData = new FormData()
+  const file = data.get('image')
+  if (file) {
+    formData.append('file', file)
+  }
+  
+  return request.post<ApiResponse<string>>('/storage/upload/', formData, {
     headers: {
       'Content-Type': 'multipart/form-data'
     }
