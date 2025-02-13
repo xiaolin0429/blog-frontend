@@ -161,11 +161,14 @@ service.interceptors.response.use(
           message = '请求参数错误'
           break
         case 401:
-          message = '未登录或登录已过期'
-          // 清除用户信息并跳转到登录页
-          const userStore = useUserStore()
-          await userStore.logout()
-          router.push('/login')
+          // 避免在登出接口返回401时再次调用登出
+          if (!error.config.url.includes('/auth/logout')) {
+            message = '未登录或登录已过期'
+            // 清除用户信息并跳转到登录页
+            const userStore = useUserStore()
+            await userStore.logout()
+            router.push('/login')
+          }
           break
         case 403:
           message = '没有权限执行此操作'
