@@ -382,7 +382,8 @@ const handlePublish = async () => {
       excerpt: postForm.value.excerpt || undefined,
       category_id: Number(postForm.value.category_id) || 0,
       tag_ids: postForm.value.tag_ids?.length ? postForm.value.tag_ids : undefined,
-      status: 'published' as PostStatus
+      status: 'published' as PostStatus,
+      cover: postForm.value.cover || undefined
     }
     
     if (isEdit) {
@@ -453,8 +454,16 @@ const handleUploadCover = async (options: any) => {
     
     if (response.data.code === 200) {
       try {
+        // 保存相对路径URL用于提交，确保以/开头
+        const originalUrl = response.data.data.url.startsWith('/') 
+          ? response.data.data.url 
+          : `/${response.data.data.url}`
+        
+        // 创建带认证的Blob URL用于显示
         const token = getToken()
-        const imageResponse = await fetch(response.data.data.url, {
+        const baseUrl = import.meta.env.VITE_API_URL || ''
+        const fullUrl = `${baseUrl}${originalUrl}`
+        const imageResponse = await fetch(fullUrl, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -462,7 +471,10 @@ const handleUploadCover = async (options: any) => {
         if (!imageResponse.ok) throw new Error('获取封面图片失败')
         const blob = await imageResponse.blob()
         const blobUrl = URL.createObjectURL(blob)
-        postForm.value.cover = blobUrl
+        
+        // 在表单中保存两个URL
+        postForm.value.coverDisplay = blobUrl // 用于显示的Blob URL
+        postForm.value.cover = originalUrl    // 用于提交的相对路径URL
         
         // 关闭加载提示并显示成功消息
         loadingMessage.close()
@@ -485,6 +497,11 @@ const handleUploadCover = async (options: any) => {
 
 // 移除封面
 const handleRemoveCover = () => {
+  // 清理Blob URL
+  if (postForm.value.coverDisplay?.startsWith('blob:')) {
+    URL.revokeObjectURL(postForm.value.coverDisplay)
+  }
+  postForm.value.coverDisplay = ''
   postForm.value.cover = ''
 }
 
@@ -563,7 +580,7 @@ const loadPost = async () => {
     const response = await getPost(Number(route.params.id))
     if (response.data.code === 200) {
       const data = response.data.data
-      const formData = {
+      const formData: CreatePostRequest = {
         title: data.title,
         content: data.content,
         category_id: data.category?.id || 0,
@@ -574,9 +591,29 @@ const loadPost = async () => {
         published_at: data.published_at || new Date().toISOString(),
         password: data.password || '',
         status: data.status || 'draft',
-        cover: data.cover || '',
+        cover: data.cover ? (data.cover.startsWith('/') ? data.cover : `/${data.cover}`) : '',  // 确保以/开头
         meta_description: data.meta_description || '',
         meta_keywords: data.meta_keywords || ''
+      }
+      
+      // 如果有封面图片，创建Blob URL用于显示
+      if (formData.cover) {
+        try {
+          const token = getToken()
+          const baseUrl = import.meta.env.VITE_API_URL || ''
+          const fullUrl = `${baseUrl}${formData.cover}`
+          const imageResponse = await fetch(fullUrl, {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          })
+          if (imageResponse.ok) {
+            const blob = await imageResponse.blob()
+            formData.coverDisplay = URL.createObjectURL(blob)
+          }
+        } catch (error) {
+          console.error('获取封面图片失败:', error)
+        }
       }
       
       // 如果有本地草稿且比服务器版本新，使用本地版本
@@ -859,7 +896,8 @@ const saveContent = async () => {
       content: postForm.value.content,
       excerpt: postForm.value.excerpt,
       category_id: postForm.value.category_id,
-      tag_ids: postForm.value.tag_ids || []
+      tag_ids: postForm.value.tag_ids || [],
+      cover: postForm.value.cover || ''
     }
     
     // 保存当前内容，添加 saved 标记为 false，表示这是未保存的草稿
@@ -1075,7 +1113,7 @@ const formatCategories = computed(() => {
           <el-form-item label="封面图">
             <div class="cover-uploader">
               <el-upload
-                v-if="!postForm.cover"
+                v-if="!postForm.coverDisplay"
                 :http-request="handleUploadCover"
                 :show-file-list="false"
                 accept="image/*"
@@ -1086,7 +1124,7 @@ const formatCategories = computed(() => {
                 </div>
               </el-upload>
               <template v-else>
-                <img :src="postForm.cover" class="cover-image" />
+                <img :src="postForm.coverDisplay" class="cover-image" />
                 <div class="cover-actions">
                   <el-button
                     type="danger"
