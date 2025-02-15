@@ -20,6 +20,18 @@
       </div>
       
       <div class="right">
+        <!-- 批量操作按钮 -->
+        <el-button-group v-if="selectedFiles.length > 0" class="mr-2">
+          <el-button 
+            type="danger" 
+            :icon="Delete" 
+            @click="handleBatchDelete"
+            :loading="loading"
+          >
+            删除选中({{ selectedFiles.length }})
+          </el-button>
+        </el-button-group>
+
         <el-upload
           :show-file-list="false"
           :http-request="handleUpload"
@@ -41,8 +53,17 @@
           v-for="file in files"
           :key="file.id"
           class="file-item"
-          @click="handlePreview(file)"
+          :class="{ 'is-selected': selectedFiles.includes(file.id) }"
+          @click="handleItemClick(file, $event)"
         >
+          <!-- 选择框 -->
+          <el-checkbox
+            v-model:value="selectedFiles"
+            :label="file.id"
+            @click.stop
+            class="file-checkbox"
+          />
+          
           <!-- 预览图/图标 -->
           <div class="file-preview">
             <template v-if="file.type === 'image'">
@@ -93,7 +114,13 @@
 
       <!-- 列表视图 -->
       <div v-else class="file-list-view">
-        <el-table :data="files" style="width: 100%">
+        <el-table 
+          :data="files" 
+          style="width: 100%"
+          @selection-change="handleSelectionChange"
+        >
+          <el-table-column type="selection" width="55" />
+          
           <el-table-column width="60">
             <template #default="{ row }">
               <el-icon :size="20"><component :is="getFileIcon(row)" /></el-icon>
@@ -121,7 +148,7 @@
           <el-table-column prop="upload_time" label="上传时间" width="180">
             <template #default="{ row }">
               {{ new Date(row.upload_time).toLocaleString() }}
-      </template>
+            </template>
           </el-table-column>
           
           <el-table-column label="操作" width="180" fixed="right">
@@ -325,6 +352,9 @@ const currentSearchIndex = ref(-1)
 const showSearch = computed(() => {
   return ['text', 'markdown', 'code', 'json'].includes(previewType.value || '')
 })
+
+// 添加选中文件的状态
+const selectedFiles = ref<string[]>([])
 
 // 计算属性：处理后的文本内容
 const processedContent = computed(() => {
@@ -1062,8 +1092,118 @@ const handlePreview = async (file: FileInfo) => {
     await loadTextContent(file)
   }
 }
+
+// 处理文件项点击
+const handleItemClick = (file: FileInfo, event: MouseEvent) => {
+  // 如果按住Ctrl键，则切换选中状态
+  if (event.ctrlKey || event.metaKey) {
+    const index = selectedFiles.value.indexOf(file.id)
+    if (index === -1) {
+      selectedFiles.value.push(file.id)
+    } else {
+      selectedFiles.value.splice(index, 1)
+    }
+  } else {
+    // 否则预览文件
+    handlePreview(file)
+  }
+}
+
+// 处理表格选择变化
+const handleSelectionChange = (selection: FileInfo[]) => {
+  selectedFiles.value = selection.map(file => file.id)
+}
+
+// 处理批量删除
+const handleBatchDelete = async () => {
+  if (selectedFiles.value.length === 0) return
+  
+  try {
+    const result = await ElMessageBox.confirm(
+      `确定要删除选中的 ${selectedFiles.value.length} 个文件吗？`,
+      '批量删除',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    )
+    
+    if (result === 'confirm') {
+      loading.value = true
+      
+      // 并行执行删除操作
+      const deletePromises = selectedFiles.value.map(fileId => deleteFile(fileId))
+      const results = await Promise.allSettled(deletePromises)
+      
+      // 统计成功和失败的数量
+      const successCount = results.filter(r => r.status === 'fulfilled' && r.value.data.code === 200).length
+      const failCount = selectedFiles.value.length - successCount
+      
+      // 显示结果消息
+      if (successCount > 0) {
+        ElMessage.success(`成功删除 ${successCount} 个文件`)
+      }
+      if (failCount > 0) {
+        ElMessage.error(`${failCount} 个文件删除失败`)
+      }
+      
+      // 重新加载文件列表
+      selectedFiles.value = []
+      await loadFiles()
+    }
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('批量删除失败:', error)
+      ElMessage.error('批量删除失败')
+    }
+  } finally {
+    loading.value = false
+  }
+}
 </script>
 
 <style lang="scss">
 @use '@/styles/views/attachment/attachment-list.scss';
+
+.file-item {
+  // ... existing code ...
+  
+  // 添加选中状态样式
+  &.is-selected {
+    background-color: var(--el-color-primary-light-9);
+    border-color: var(--el-color-primary);
+  }
+  
+  // 添加复选框样式
+  .file-checkbox {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    z-index: 1;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  
+  &:hover .file-checkbox,
+  &.is-selected .file-checkbox {
+    opacity: 1;
+  }
+}
+
+// 添加文件名单元格样式
+.file-name-cell {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  
+  &:hover {
+    color: var(--el-color-primary);
+  }
+}
+
+// 添加按钮组间距
+.mr-2 {
+  margin-right: 8px;
+}
 </style> 

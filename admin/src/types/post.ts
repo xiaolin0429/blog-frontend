@@ -96,6 +96,7 @@ export interface CreatePostRequest {
   published_at?: string
   password?: string
   cover?: string
+  coverDisplay?: string // 用于前端显示的Blob URL
   meta_description?: string
   meta_keywords?: string
 }
