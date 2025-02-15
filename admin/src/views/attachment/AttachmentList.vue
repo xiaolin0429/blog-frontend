@@ -1165,45 +1165,4 @@ const handleBatchDelete = async () => {
 
 <style lang="scss">
 @use '@/styles/views/attachment/attachment-list.scss';
-
-.file-item {
-  // ... existing code ...
-  
-  // 添加选中状态样式
-  &.is-selected {
-    background-color: var(--el-color-primary-light-9);
-    border-color: var(--el-color-primary);
-  }
-  
-  // 添加复选框样式
-  .file-checkbox {
-    position: absolute;
-    top: 8px;
-    left: 8px;
-    z-index: 1;
-    opacity: 0;
-    transition: opacity 0.2s;
-  }
-  
-  &:hover .file-checkbox,
-  &.is-selected .file-checkbox {
-    opacity: 1;
-  }
-}
-
-// 添加文件名单元格样式
-.file-name-cell {
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-  
-  &:hover {
-    color: var(--el-color-primary);
-  }
-}
-
-// 添加按钮组间距
-.mr-2 {
-  margin-right: 8px;
-}
 </style> 
