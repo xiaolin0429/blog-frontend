@@ -218,6 +218,14 @@ const isFormModified = computed(() => {
   return JSON.stringify(postForm.value) !== JSON.stringify(originalForm.value)
 })
 
+// 计算属性：分类ID，用于处理显示逻辑
+const categoryIdDisplay = computed({
+  get: () => postForm.value.category_id === 0 ? null : postForm.value.category_id,
+  set: (val) => {
+    postForm.value.category_id = val === null ? 0 : val
+  }
+})
+
 // 保存原始表单数据，用于比较是否修改
 const originalForm = ref<CreatePostRequest>({
   title: '',
@@ -1075,7 +1083,7 @@ const formatCategories = computed(() => {
         >
           <el-form-item label="分类" prop="category_id">
             <el-tree-select
-              v-model="postForm.category_id"
+              v-model="categoryIdDisplay"
               :data="formatCategories"
               placeholder="请选择分类"
               :disabled="loading"
@@ -1087,6 +1095,7 @@ const formatCategories = computed(() => {
                 children: 'children',
                 value: 'value'
               }"
+              :clearable="true"
             />
           </el-form-item>
 
@@ -1119,8 +1128,9 @@ const formatCategories = computed(() => {
                 accept="image/*"
                 :disabled="loading"
               >
-                <div class="uploader-icon">
+                <div class="uploader-button">
                   <el-icon><Plus /></el-icon>
+                  <span>添加封面图</span>
                 </div>
               </el-upload>
               <template v-else>

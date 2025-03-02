@@ -402,6 +402,39 @@
       }
     }
     
+    .uploader-button {
+      width: 100%;
+      height: 120px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      border: 1px dashed var(--el-border-color);
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.3s;
+      
+      .el-icon {
+        font-size: 24px;
+        margin-bottom: 8px;
+        color: var(--el-text-color-secondary);
+      }
+      
+      span {
+        font-size: 14px;
+        color: var(--el-text-color-secondary);
+      }
+      
+      &:hover {
+        border-color: var(--el-color-primary);
+        background-color: var(--el-color-primary-light-9);
+        
+        .el-icon, span {
+          color: var(--el-color-primary);
+        }
+      }
+    }
+    
     .cover-image {
       width: 100%;
       height: 120px;
