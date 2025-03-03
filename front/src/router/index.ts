@@ -5,7 +5,7 @@ import { useAuthStore } from '@/store/modules/auth'
 const routes: RouteRecordRaw[] = [
   {
     path: '/',
-    component: () => import('@/layouts/default/index.vue'),
+    component: () => import('../layouts/default/index.vue'),
     children: [
       {
         path: '',
@@ -16,7 +16,7 @@ const routes: RouteRecordRaw[] = [
       {
         path: 'post/:id',
         name: 'post-detail',
-        component: () => import('@/views/post/detail/index.vue'),
+        component: () => import('@/views/post/detail.vue'),
         meta: { title: '文章详情' }
       },
       {
@@ -24,6 +24,12 @@ const routes: RouteRecordRaw[] = [
         name: 'category',
         component: () => import('@/views/category/index.vue'),
         meta: { title: '分类' }
+      },
+      {
+        path: 'category/:id',
+        name: 'category-detail',
+        component: () => import('@/views/category/detail.vue'),
+        meta: { title: '分类文章' }
       },
       {
         path: 'tag',
@@ -36,23 +42,29 @@ const routes: RouteRecordRaw[] = [
         name: 'about',
         component: () => import('@/views/about/index.vue'),
         meta: { title: '关于' }
+      },
+      {
+        path: 'comments',
+        name: 'comments',
+        component: () => import('@/views/comments/index.vue'),
+        meta: { title: '最新评论' }
       }
     ]
   },
   {
     path: '/auth',
-    component: () => import('@/layouts/auth/index.vue'),
+    component: () => import('../layouts/auth/index.vue'),
     children: [
       {
         path: 'login',
         name: 'login',
-        component: () => import('@/views/auth/login/index.vue'),
+        component: () => import('@/views/auth/login.vue'),
         meta: { title: '登录' }
       },
       {
         path: 'register',
         name: 'register',
-        component: () => import('@/views/auth/register/index.vue'),
+        component: () => import('@/views/auth/register.vue'),
         meta: { title: '注册' }
       }
     ]
